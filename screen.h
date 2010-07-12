@@ -12,6 +12,10 @@ struct console
 
 void init_vt (void);
 void close_vt (void);
+int get_vt (void);
+int get_open_vt (void);
+void set_vt (int vt);
+
 struct console * start_x (void);
 void popup_x (const struct console * console);
 void close_x (struct console * console);

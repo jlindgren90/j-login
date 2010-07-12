@@ -22,17 +22,18 @@ struct session {
 };
 
 static struct console * first_console;
-static GtkWidget * window, * frame, * icon, * pages, * log_in_page, * fail_page,
- * prompt_box, * prompt, * name_entry, * password_entry, * log_in_button_box,
- * log_in_button, * fail_message_box, * fail_message, * ok_button_box,
- * ok_button, * tool_box, * status_bar, * sleep_button, * shut_down_button,
- * reboot_button;
+static GtkWidget * window, * fixed, * frame, * icon, * pages, * log_in_page,
+ * fail_page, * prompt_box, * prompt, * name_entry, * password_entry,
+ * log_in_button_box, * log_in_button, * fail_message_box, * fail_message,
+ * ok_button_box, * ok_button, * tool_box, * status_bar, * sleep_button,
+ * shut_down_button, * reboot_button;
+static GList * logos = 0;
 static GList * sessions = 0;
 static char sessions_flag = 1;
 static int runlevel = 0;
 
 static void run_setup (void) {
-   static const char * const args[2] = {"/usr/bin/j-login-setup", 0};
+   static const char * const args[2] = {"/usr/sbin/j-login-setup", 0};
    wait_for_exit (launch (args));
 }
 
@@ -40,24 +41,14 @@ static void make_window (void) {
    window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
    gtk_window_set_decorated ((GtkWindow *) window, 0);
    gtk_window_set_keep_above ((GtkWindow *) window, 1);
-   GdkScreen * screen = gtk_window_get_screen ((GtkWindow *) window);
-#if GTK_CHECK_VERSION (2, 20, 0)
-   int monitor = gdk_screen_get_primary_monitor (screen);
-#else
-   int monitor = 0;
-#endif
-   GdkRectangle rect;
-   gdk_screen_get_monitor_geometry (screen, monitor, & rect);
-   gtk_window_move ((GtkWindow *) window, rect.x, rect.y);
-   gtk_window_set_default_size ((GtkWindow *) window, rect.width, rect.height);
-   gtk_container_set_border_width ((GtkContainer *) window, 6);
+   fixed = gtk_fixed_new ();
    frame = gtk_vbox_new (0, 6);
    icon = gtk_image_new_from_file ("/usr/share/pixmaps/j-login.png");
    gtk_box_pack_start ((GtkBox *) frame, icon, 0, 0, 0);
    pages = gtk_hbox_new (0, 6);
    gtk_box_pack_start ((GtkBox *) frame, pages, 1, 0, 0);
-   gtk_container_add ((GtkContainer *) window, frame);
-   gtk_widget_show_all (frame);
+   gtk_fixed_put ((GtkFixed *) fixed, frame, 0, 0);
+   gtk_container_add ((GtkContainer *) window, fixed);
 }
 
 static void make_log_in_page (void) {
@@ -128,7 +119,6 @@ static void make_tool_box (void) {
    GTK_WIDGET_UNSET_FLAGS (shut_down_button, GTK_CAN_FOCUS);
    GTK_WIDGET_UNSET_FLAGS (sleep_button, GTK_CAN_FOCUS);
 #endif
-   gtk_widget_show_all (tool_box);
 }
 
 static void reset (void) {
@@ -157,8 +147,39 @@ static void remove_session (struct session * session) {
    sessions_flag = 1;
 }
 
+static void do_layout (void)
+{
+   g_list_foreach (logos, (GFunc) gtk_widget_destroy, 0);
+   g_list_free (logos);
+   logos = 0;
+   GdkScreen * screen = gtk_window_get_screen ((GtkWindow *) window);
+   gtk_window_resize ((GtkWindow *) window, gdk_screen_get_width (screen),
+    gdk_screen_get_height (screen));
+   int monitors = gdk_screen_get_n_monitors (screen);
+#if GTK_CHECK_VERSION (2, 20, 0)
+   int primary = gdk_screen_get_primary_monitor (screen);
+#else
+   int primary = 0;
+#endif
+   for (int monitor = 0; monitor < monitors; monitor ++) {
+      GdkRectangle rect;
+      gdk_screen_get_monitor_geometry (screen, monitor, & rect);
+      if (monitor == primary) {
+         gtk_fixed_move ((GtkFixed *) fixed, frame, rect.x + 6, rect.y + 6);
+         gtk_widget_set_size_request (frame, rect.width - 12, rect.height - 12);
+      } else {
+         GtkWidget * logo = gtk_image_new_from_file
+          ("/usr/share/pixmaps/j-login.png");
+         gtk_fixed_put ((GtkFixed *) fixed, logo, rect.x, rect.y);
+         gtk_widget_set_size_request (logo, rect.width, rect.height);
+         logos = g_list_prepend (logos, logo);
+      }
+   }
+}
+
 static char show_window (void)
 {
+   do_layout ();
    gtk_widget_show_all (window);
    gtk_window_present ((GtkWindow *) window);
    if (! block_x (GDK_WINDOW_XDISPLAY (window->window), GDK_WINDOW_XID
@@ -250,7 +271,7 @@ static int popup_cb (void * unused) {
 }
 
 static void do_sleep (void) {
-   static const char * const args[2] = {"/usr/bin/j-login-sleep", 0};
+   static const char * const args[2] = {"/usr/sbin/j-login-sleep", 0};
    wait_for_exit (launch (args));
    reset ();
 }
@@ -364,6 +385,9 @@ static void change_runlevel (void) {
 }
 
 int main (void) {
+   set_user ("root");
+   init_vt ();
+   int old_vt = get_vt ();
    first_console = start_x ();
    set_display (first_console->display);
    run_setup ();
@@ -380,6 +404,8 @@ int main (void) {
    gtk_main ();
    gtk_widget_destroy (window);
    close_x (first_console);
+   set_vt (old_vt);
+   close_vt ();
    change_runlevel ();
    return 0;
 }
