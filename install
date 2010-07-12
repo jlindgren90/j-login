@@ -1,0 +1,7 @@
+#!/bin/sh
+cp j-session /usr/bin
+cp j-login j-login-setup j-login-sleep /usr/sbin
+cp j-login.png /usr/share/pixmaps
+cp *.desktop /usr/share/applications
+update-desktop-database
+echo "Don't forget to update /etc/inittab and /etc/sudoers!"

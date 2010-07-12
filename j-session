@@ -1,2 +1,2 @@
 #!/bin/sh
-exec x-session-manager
+exec /etc/X11/Xsession

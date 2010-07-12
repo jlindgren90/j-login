@@ -1,3 +1,4 @@
 #!/bin/sh
+if test -x /etc/acpi/power.sh ; then /etc/acpi/power.sh ; fi
+if test -f .Xdefaults ; then xrdb .Xdefaults ; fi
 /usr/bin/xsetroot -cursor_name top_left_arrow
-/usr/bin/xfsettingsd

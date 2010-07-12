@@ -1,19 +1,24 @@
 /* J Login >> utils.h */
 /* John Lindgren */
-/* December 20, 2009 */
+/* July 12, 2010 */
 
 #define NAME "J Login"
 
-void error (char * message);
-void fail (char * func);
-void fail_two (char * func, char * param);
+#ifndef __GNUC__
+#define __attribute__(...)
+#endif
+
+void error (const char * message) __attribute__ ((noreturn));
+void fail (const char * func) __attribute__ ((noreturn));
+void fail_two (const char * func, const char * param) __attribute__ ((noreturn));
 void * my_malloc (int size);
-char * my_strdup (char * string);
-void my_setenv (char * name, char * value);
-char exist (char * file);
-int launch (char * * args);
+char * my_strdup (const char * string);
+void my_setenv (const char * name, const char * value);
+char exist (const char * file);
+int launch (const char * const * args);
 char exited (int process);
 void wait_for_exit (int process);
 void my_kill (int process);
-void set_user (char * user);
-int launch_set_user (char * user, char * * args);
+char check_password (const char * name, const char * password);
+void set_user (const char * user);
+int launch_set_user (const char * user, const char * const * args);
