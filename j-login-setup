@@ -1,0 +1,3 @@
+#!/bin/sh
+/usr/bin/xsetroot -cursor_name top_left_arrow
+/usr/bin/xfsettingsd

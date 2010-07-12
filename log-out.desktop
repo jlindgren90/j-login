@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Categories=Session
+Name=Log Out
+Icon=system-log-out
+Exec=xfce4-session-logout
