@@ -187,7 +187,9 @@ static char show_window (void)
       gtk_widget_hide (window);
       return 0;
    }
+   unlock_vt ();
    popup_x (first_console);
+   lock_vt ();
    return 1;
 }
 
@@ -209,7 +211,9 @@ static void start_session (const char * user)
       console = start_x ();
    else {
       hide_window ();
+      unlock_vt ();
       popup_x (first_console);
+      lock_vt ();
       console = first_console;
    }
    set_display (console->display);
@@ -228,7 +232,9 @@ static char try_activate_session (const char * user) {
    const struct session * session = node->data;
    if (session->console == first_console)
       hide_window ();
+   unlock_vt ();
    popup_x (session->console);
+   lock_vt ();
    return 1;
 }
 
@@ -272,7 +278,9 @@ static int popup_cb (void * unused) {
 
 static void do_sleep (void) {
    static const char * const args[2] = {"/usr/sbin/j-login-sleep", 0};
+   unlock_vt ();
    wait_for_exit (launch (args));
+   lock_vt ();
    reset ();
 }
 
@@ -389,6 +397,7 @@ int main (void) {
    init_vt ();
    int old_vt = get_vt ();
    first_console = start_x ();
+   lock_vt ();
    set_display (first_console->display);
    run_setup ();
    g_thread_init (0);
@@ -404,6 +413,7 @@ int main (void) {
    gtk_main ();
    gtk_widget_destroy (window);
    close_x (first_console);
+   unlock_vt ();
    set_vt (old_vt);
    close_vt ();
    change_runlevel ();

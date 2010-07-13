@@ -17,27 +17,15 @@
 
 static int vt_handle;
 
-static void lock_vt (void) {
-   if (ioctl (vt_handle, VT_LOCKSWITCH, 0) < 0)
-      fail ("VT_LOCKSWITCH");
-}
-
-static void unlock_vt (void) {
-   if (ioctl (vt_handle, VT_UNLOCKSWITCH, 0) < 0)
-      fail ("VT_UNLOCKSWITCH");
-}
-
 void init_vt (void) {
    vt_handle = open ("/dev/console", O_RDONLY);
    if (vt_handle < 0)
       fail_two ("open", "/dev/console");
    if (fcntl (vt_handle, F_SETFD, FD_CLOEXEC) < 0)
       fail_two ("FD_CLOEXEC", "/dev/console");
-   lock_vt ();
 }
 
 void close_vt (void) {
-   unlock_vt ();
    if (close (vt_handle) < 0)
       fail_two ("close", "/dev/console");
 }
@@ -57,12 +45,20 @@ int get_open_vt (void) {
 }
 
 void set_vt (int vt) {
-   unlock_vt ();
    if (ioctl (vt_handle, VT_ACTIVATE, vt) < 0)
       fail ("VT_ACTIVATE");
    if (ioctl (vt_handle, VT_WAITACTIVE, vt) < 0)
       fail ("VT_WAITACTIVE");
-   lock_vt ();
+}
+
+void lock_vt (void) {
+   if (ioctl (vt_handle, VT_LOCKSWITCH, 0) < 0)
+      fail ("VT_LOCKSWITCH");
+}
+
+void unlock_vt (void) {
+   if (ioctl (vt_handle, VT_UNLOCKSWITCH, 0) < 0)
+      fail ("VT_UNLOCKSWITCH");
 }
 
 static int get_open_display (void) {
