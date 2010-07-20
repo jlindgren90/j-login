@@ -1,7 +1,15 @@
 #!/bin/sh
+
+./uninstall
+
 cp j-session /usr/bin
-cp j-login j-login-setup j-login-sleep /usr/sbin
+cp j-login /usr/sbin
+cp j-login-setup /usr/sbin
+cp j-login-sleep /usr/sbin
 cp j-login.png /usr/share/pixmaps
-cp *.desktop /usr/share/applications
+cp log-out.desktop /usr/share/applications
+cp switch-user.desktop /usr/share/applications
+
 update-desktop-database
+
 echo "Don't forget to update /etc/inittab and /etc/sudoers!"
