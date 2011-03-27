@@ -2,10 +2,12 @@
 /* John Lindgren */
 /* July 12, 2010 */
 
+#ifndef JLOGIN_SCREEN_H
+#define JLOGIN_SCREEN_H
+
 #include <X11/Xlib.h>
 
-struct console
-{
+struct console {
    int vt, display, process;
    Display * handle;
 };
@@ -24,3 +26,5 @@ void close_x (struct console * console);
 void set_display (int display);
 char block_x (Display * handle, Window window);
 void unblock_x (Display * handle);
+
+#endif

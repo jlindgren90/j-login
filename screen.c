@@ -1,6 +1,6 @@
 /* J Login >> screen.c */
 /* John Lindgren */
-/* July 12, 2010 */
+/* March 27, 2011 */
 
 #include <limits.h>
 #include <fcntl.h>
@@ -132,8 +132,7 @@ void set_display (int display) {
    my_setenv ("DISPLAY", name);
 }
 
-char block_x (Display * handle, Window window)
-{
+char block_x (Display * handle, Window window) {
    char mouse = 0, keyboard = 0;
    for (int count = 0; count < 50; count ++)
    {
@@ -152,8 +151,7 @@ char block_x (Display * handle, Window window)
    return 0;
 }
 
-void unblock_x (Display * handle)
-{
+void unblock_x (Display * handle) {
    XUngrabPointer (handle, CurrentTime);
    XUngrabKeyboard (handle, CurrentTime);
 }

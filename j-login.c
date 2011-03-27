@@ -10,7 +10,6 @@
 
 #include <ck-connector.h>
 #include <dbus/dbus.h>
-#include <gdk/gdkkeysyms.h>
 #include <gdk/gdkx.h>
 #include <gtk/gtk.h>
 
@@ -66,15 +65,12 @@ static void make_log_in_page (void) {
    gtk_entry_set_visibility ((GtkEntry *) password_entry, 0);
    gtk_entry_set_activates_default ((GtkEntry *) password_entry, 1);
    gtk_box_pack_start ((GtkBox *) log_in_page, password_entry, 0, 0, 0);
+   g_signal_connect_swapped (name_entry, "activate", (GCallback)
+    gtk_widget_grab_focus, password_entry);
    log_in_button_box = gtk_hbox_new (0, 6);
    log_in_button = gtk_button_new_with_label ("Log in");
-#if GTK_CHECK_VERSION (2, 20, 0)
    gtk_widget_set_can_focus (log_in_button, 0);
    gtk_widget_set_can_default (log_in_button, 1);
-#else
-   GTK_WIDGET_UNSET_FLAGS (log_in_button, GTK_CAN_FOCUS);
-   GTK_WIDGET_SET_FLAGS (log_in_button, GTK_CAN_DEFAULT);
-#endif
    gtk_box_pack_end ((GtkBox *) log_in_button_box, log_in_button, 0, 0, 0);
    gtk_box_pack_start ((GtkBox *) log_in_page, log_in_button_box, 0, 0, 0);
    gtk_widget_show_all (log_in_page);
@@ -91,11 +87,7 @@ static void make_fail_page (void) {
    gtk_box_pack_start ((GtkBox *) fail_page, fail_message_box, 0, 0, 0);
    ok_button_box = gtk_hbox_new (0, 6);
    ok_button = gtk_button_new_with_label ("O.K.");
-#if GTK_CHECK_VERSION (2, 20, 0)
    gtk_widget_set_can_default (ok_button, 1);
-#else
-   GTK_WIDGET_SET_FLAGS (ok_button, GTK_CAN_DEFAULT);
-#endif
    gtk_box_pack_end ((GtkBox *) ok_button_box, ok_button, 0, 0, 0);
    gtk_widget_show_all (ok_button_box);
    gtk_box_pack_start ((GtkBox *) fail_page, ok_button_box, 0, 0, 0);
@@ -112,15 +104,9 @@ static void make_tool_box (void) {
    gtk_box_pack_end ((GtkBox *) tool_box, shut_down_button, 0, 0, 0);
    sleep_button = gtk_button_new_with_mnemonic ("_Sleep");
    gtk_box_pack_end ((GtkBox *) tool_box, sleep_button, 0, 0, 0);
-#if GTK_CHECK_VERSION (2, 20, 0)
    gtk_widget_set_can_focus (reboot_button, 0);
    gtk_widget_set_can_focus (shut_down_button, 0);
    gtk_widget_set_can_focus (sleep_button, 0);
-#else
-   GTK_WIDGET_UNSET_FLAGS (reboot_button, GTK_CAN_FOCUS);
-   GTK_WIDGET_UNSET_FLAGS (shut_down_button, GTK_CAN_FOCUS);
-   GTK_WIDGET_UNSET_FLAGS (sleep_button, GTK_CAN_FOCUS);
-#endif
 }
 
 static void reset (void) {
@@ -150,8 +136,7 @@ static void remove_session (struct session * session) {
    sessions_flag = 1;
 }
 
-static void do_layout (void)
-{
+static void do_layout (void) {
    GdkScreen * screen = gtk_window_get_screen ((GtkWindow *) window);
    gtk_window_resize ((GtkWindow *) window, gdk_screen_get_width (screen),
     gdk_screen_get_height (screen));
@@ -162,8 +147,7 @@ static void do_layout (void)
    gtk_widget_set_size_request (frame, rect.width - 12, rect.height - 12);
 }
 
-static char show_window (void)
-{
+static char show_window (void) {
    do_layout ();
    gtk_widget_show_all (window);
    gtk_window_present ((GtkWindow *) window);
@@ -178,8 +162,7 @@ static char show_window (void)
    return 1;
 }
 
-static void hide_window (void)
-{
+static void hide_window (void) {
    unblock_x (GDK_WINDOW_XDISPLAY (window->window));
    gtk_widget_hide (window);
 }
@@ -220,12 +203,13 @@ static int launch_session (const char * user) {
    return launch_set_user (user, args);
 }
 
-static void start_session (const char * user)
-{
+static void start_session (const char * user) {
    struct console * console;
-   if (sessions)
+   if (sessions) {
+      unlock_vt ();
       console = start_x ();
-   else {
+      lock_vt ();
+   } else {
       hide_window ();
       unlock_vt ();
       popup_x (first_console);
@@ -364,36 +348,7 @@ static void reboot (void) {
    gtk_main_quit ();
 }
 
-/* Avoid switching consoles while a key is held; see Debian #515546. */
-static int key_press_cb (GtkWidget * widget, GdkEventKey * event) {
-   if (event->keyval != GDK_Return)
-      return 0;
-   return 1;
-}
-
-static int key_release_cb (GtkWidget * widget, GdkEventKey * event) {
-   if (event->keyval != GDK_Return)
-      return 0;
-#if GTK_CHECK_VERSION (2, 20, 0)
-   if (gtk_widget_has_focus (name_entry))
-#else
-   if (GTK_WIDGET_HAS_FOCUS (name_entry))
-#endif
-      gtk_widget_grab_focus (password_entry);
-#if GTK_CHECK_VERSION (2, 20, 0)
-   else if (gtk_widget_get_visible (log_in_page))
-#else
-   else if (GTK_WIDGET_VISIBLE (log_in_page))
-#endif
-      log_in ();
-   else
-      reset ();
-   return 1;
-}
-
 static void set_up_window (void) {
-   g_signal_connect (window, "key-press-event", (GCallback) key_press_cb, 0);
-   g_signal_connect (window, "key-release-event", (GCallback) key_release_cb, 0);
    g_signal_connect (log_in_button, "clicked", (GCallback) log_in, 0);
    g_signal_connect (ok_button, "clicked", (GCallback) reset, 0);
    g_signal_connect (sleep_button, "clicked", (GCallback) do_sleep, 0);

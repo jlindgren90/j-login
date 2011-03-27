@@ -1,11 +1,11 @@
 #!/bin/sh
 
-[ -f /usr/bin/j-session ] && rm /usr/bin/j-session
-[ -f /usr/sbin/j-login ] && rm /usr/sbin/j-login
-[ -f /usr/sbin/j-login-setup ] && rm /usr/sbin/j-login-setup
-[ -f /usr/sbin/j-login-sleep ] && rm /usr/sbin/j-login-sleep
-[ -f /usr/share/pixmaps/j-login.png ] && rm /usr/share/pixmaps/j-login.png
-[ -f /usr/share/applications/log-out.desktop ] && rm /usr/share/applications/log-out.desktop
-[ -f /usr/share/applications/switch-user.desktop ] && rm /usr/share/applications/switch-user.desktop
+test -f /usr/bin/j-session && rm /usr/bin/j-session
+test -f /usr/sbin/j-login && rm /usr/sbin/j-login
+test -f /usr/sbin/j-login-setup && rm /usr/sbin/j-login-setup
+test -f /usr/sbin/j-login-sleep && rm /usr/sbin/j-login-sleep
+test -f /usr/share/applications/log-out.desktop && rm /usr/share/applications/log-out.desktop
+test -f /usr/share/applications/switch-user.desktop && rm /usr/share/applications/switch-user.desktop
+test -f /usr/share/pixmaps/j-login.png && rm /usr/share/pixmaps/j-login.png
 
 update-desktop-database

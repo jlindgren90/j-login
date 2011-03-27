@@ -2,6 +2,9 @@
 /* John Lindgren */
 /* March 27, 2011 */
 
+#ifndef JLOGIN_UTILS_H
+#define JLOGIN_UTILS_H
+
 #define NAME "J Login"
 
 #ifndef __GNUC__
@@ -23,3 +26,5 @@ int get_user_id (const char * user);
 char check_password (const char * name, const char * password);
 void set_user (const char * user);
 int launch_set_user (const char * user, const char * const * args);
+
+#endif

@@ -1,6 +1,6 @@
 /* J Login >> utils.c */
 /* John Lindgren */
-/* July 12, 2010 */
+/* March 27, 2011 */
 
 #include <errno.h>
 #include <signal.h>
@@ -57,8 +57,7 @@ char exist (const char * name) {
    fail_two ("stat", name);
 }
 
-static void clear_signals (void)
-{
+static void clear_signals (void) {
    sigset_t signals;
    sigemptyset (& signals);
    if (sigprocmask (SIG_SETMASK, & signals, 0) < 0)

@@ -55,7 +55,7 @@ void set_user (const char * user) {
    my_setenv ("LOGNAME", user);
    my_setenv ("HOME", p->pw_dir);
    char path [256 + NAME_MAX];
-   snprintf (path, sizeof path, "%s:/usr/games:%s/bin", p->pw_uid ?
-    "/bin:/usr/bin" : "/bin:/sbin:/usr/bin:/usr/sbin", p->pw_dir);
+   snprintf (path, sizeof path,
+    "/bin:/sbin:/usr/bin:/usr/sbin:/usr/games:%s/bin", p->pw_dir);
    my_setenv ("PATH", path);
 }

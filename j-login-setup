@@ -1,4 +1,5 @@
 #!/bin/sh
+
 if test -x /etc/acpi/power.sh ; then /etc/acpi/power.sh ; fi
-if test -f .Xdefaults ; then xrdb .Xdefaults ; fi
+if test -f ~/.Xdefaults ; then xrdb ~/.Xdefaults ; fi
 /usr/bin/xsetroot -cursor_name left_ptr

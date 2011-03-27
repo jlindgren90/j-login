@@ -1,3 +1,4 @@
 #!/bin/sh
+
 echo mem > /sys/power/state
 if test -x /etc/acpi/power.sh ; then /etc/acpi/power.sh ; fi
