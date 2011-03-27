@@ -1,6 +1,6 @@
 /* J Login >> utils.h */
 /* John Lindgren */
-/* July 12, 2010 */
+/* March 27, 2011 */
 
 #define NAME "J Login"
 
@@ -19,6 +19,7 @@ int launch (const char * const * args);
 char exited (int process);
 void wait_for_exit (int process);
 void my_kill (int process);
+int get_user_id (const char * user);
 char check_password (const char * name, const char * password);
 void set_user (const char * user);
 int launch_set_user (const char * user, const char * const * args);

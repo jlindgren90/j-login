@@ -1,6 +1,6 @@
 /* J Login >> j-login.c */
 /* John Lindgren */
-/* July 12, 2010 */
+/* March 27, 2011 */
 
 #include <pthread.h>
 #include <signal.h>
@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <ck-connector.h>
+#include <dbus/dbus.h>
 #include <gdk/gdkkeysyms.h>
 #include <gdk/gdkx.h>
 #include <gtk/gtk.h>
@@ -18,6 +20,7 @@
 struct session {
    char * user;
    struct console * console;
+   CkConnector * ck;
    int process;
 };
 
@@ -131,10 +134,11 @@ static void reset (void) {
 }
 
 static void add_session (const char * user, struct console * console,
- int process) {
+ CkConnector * ck, int process) {
    struct session * new = my_malloc (sizeof (struct session));
    new->user = my_strdup (user);
    new->console = console;
+   new->ck = ck;
    new->process = process;
    sessions = g_list_append (sessions, new);
    sessions_flag = 1;
@@ -199,6 +203,37 @@ static void hide_window (void)
    gtk_widget_hide (window);
 }
 
+static CkConnector * start_consolekit (const char * user, struct console *
+ console) {
+   int32_t id = get_user_id (user);
+   if (id < 0)
+      error ("unknown user");
+   int32_t local = 1;
+   char disp[32];
+   snprintf (disp, sizeof disp, ":%d", console->display);
+   char term[32];
+   snprintf (term, sizeof term, "/dev/tty%d", console->vt);
+   const char * disp2 = disp, * term2 = term;
+   CkConnector * conn = ck_connector_new ();
+   if (! conn)
+      error ("ck_connector_new failed");
+   DBusError err;
+   dbus_error_init (& err);
+   if (! ck_connector_open_session_with_parameters (conn, & err, "unix-user",
+    & id, "is-local", & local, "x11-display", & disp2, "x11-display-device",
+    & term2, NULL))
+      error ("ck_connector_open_session_with_parameters failed");
+   my_setenv ("XDG_SESSION_COOKIE", ck_connector_get_cookie (conn));
+   return conn;
+}
+
+static void stop_consolekit (CkConnector * connector) {
+   DBusError err;
+   dbus_error_init (& err);
+   ck_connector_close_session (connector, & err);
+   ck_connector_unref (connector);
+}
+
 static int launch_session (const char * user) {
    static const char * const args [2] = {"/usr/bin/j-session", 0};
    return launch_set_user (user, args);
@@ -217,7 +252,8 @@ static void start_session (const char * user)
       console = first_console;
    }
    set_display (console->display);
-   add_session (user, console, launch_session (user));
+   CkConnector * ck = start_consolekit (user, console);
+   add_session (user, console, ck, launch_session (user));
 }
 
 static int find_session_cb (const struct session * session, const char * user) {
@@ -239,6 +275,7 @@ static char try_activate_session (const char * user) {
 }
 
 static void end_session (struct session * session) {
+   stop_consolekit (session->ck);
    if (session->console != first_console)
       close_x (session->console);
    remove_session (session);

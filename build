@@ -1,6 +1,6 @@
 #!/bin/sh
-gcc -c -Wall -O2 -std=c99 -D_POSIX_C_SOURCE=200112L `pkg-config --cflags gthread-2.0 gtk+-2.0` j-login.c
+gcc -c -Wall -O2 -std=c99 -D_POSIX_C_SOURCE=200112L `pkg-config --cflags ck-connector gthread-2.0 gtk+-2.0` j-login.c
 gcc -c -Wall -O2 -std=c99 -D_POSIX_C_SOURCE=200112L `pkg-config --cflags x11` screen.c
 gcc -c -Wall -O2 -std=c99 -D_POSIX_C_SOURCE=200112L utils.c utils-linux.c
-gcc `pkg-config --libs gthread-2.0 gtk+-2.0 x11` -lcrypt -o j-login j-login.o screen.o utils.o utils-linux.o
+gcc `pkg-config --libs ck-connector gthread-2.0 gtk+-2.0 x11` -lcrypt -o j-login j-login.o screen.o utils.o utils-linux.o
 strip -s j-login

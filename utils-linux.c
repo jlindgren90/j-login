@@ -1,6 +1,6 @@
 /* J Login >> utils-linux.c */
 /* John Lindgren */
-/* July 12, 2010 */
+/* March 27, 2011 */
 
 #define _BSD_SOURCE
 #define _XOPEN_SOURCE
@@ -14,6 +14,13 @@
 #include <unistd.h>
 
 #include "utils.h"
+
+int get_user_id (const char * user) {
+   const struct passwd * p = getpwnam (user);
+   if (! p)
+      return -1;
+   return p->pw_uid;
+}
 
 char check_password (const char * name, const char * password) {
    const struct passwd * p = getpwnam (name);
