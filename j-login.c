@@ -30,7 +30,6 @@ static GtkWidget * window, * fixed, * frame, * icon, * pages, * log_in_page,
  * log_in_button_box, * log_in_button, * fail_message_box, * fail_message,
  * ok_button_box, * ok_button, * tool_box, * status_bar, * sleep_button,
  * shut_down_button, * reboot_button;
-static GList * logos = 0;
 static GList * sessions = 0;
 static char sessions_flag = 1;
 static int runlevel = 0;
@@ -153,32 +152,14 @@ static void remove_session (struct session * session) {
 
 static void do_layout (void)
 {
-   g_list_foreach (logos, (GFunc) gtk_widget_destroy, 0);
-   g_list_free (logos);
-   logos = 0;
    GdkScreen * screen = gtk_window_get_screen ((GtkWindow *) window);
    gtk_window_resize ((GtkWindow *) window, gdk_screen_get_width (screen),
     gdk_screen_get_height (screen));
-   int monitors = gdk_screen_get_n_monitors (screen);
-#if GTK_CHECK_VERSION (2, 20, 0)
-   int primary = gdk_screen_get_primary_monitor (screen);
-#else
-   int primary = 0;
-#endif
-   for (int monitor = 0; monitor < monitors; monitor ++) {
-      GdkRectangle rect;
-      gdk_screen_get_monitor_geometry (screen, monitor, & rect);
-      if (monitor == primary) {
-         gtk_fixed_move ((GtkFixed *) fixed, frame, rect.x + 6, rect.y + 6);
-         gtk_widget_set_size_request (frame, rect.width - 12, rect.height - 12);
-      } else {
-         GtkWidget * logo = gtk_image_new_from_file
-          ("/usr/share/pixmaps/j-login.png");
-         gtk_fixed_put ((GtkFixed *) fixed, logo, rect.x, rect.y);
-         gtk_widget_set_size_request (logo, rect.width, rect.height);
-         logos = g_list_prepend (logos, logo);
-      }
-   }
+   GdkRectangle rect;
+   gdk_screen_get_monitor_geometry (screen, gdk_screen_get_primary_monitor
+    (screen), & rect);
+   gtk_fixed_move ((GtkFixed *) fixed, frame, rect.x + 6, rect.y + 6);
+   gtk_widget_set_size_request (frame, rect.width - 12, rect.height - 12);
 }
 
 static char show_window (void)
