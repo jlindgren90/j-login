@@ -23,6 +23,7 @@ struct session {
    int process;
 };
 
+static char gui = 1;
 static struct console * first_console;
 static GtkWidget * window, * fixed, * frame, * icon, * pages, * log_in_page,
  * fail_page, * prompt_box, * prompt, * name_entry, * password_entry,
@@ -210,7 +211,8 @@ static void start_session (const char * user) {
       console = start_x ();
       lock_vt ();
    } else {
-      hide_window ();
+      if (gui)
+         hide_window ();
       unlock_vt ();
       popup_x (first_console);
       lock_vt ();
@@ -231,7 +233,7 @@ static char try_activate_session (const char * user) {
    if (! node)
       return 0;
    const struct session * session = node->data;
-   if (session->console == first_console)
+   if (gui && session->console == first_console)
       hide_window ();
    unlock_vt ();
    popup_x (session->console);
@@ -244,7 +246,8 @@ static void end_session (struct session * session) {
    if (session->console != first_console)
       close_x (session->console);
    remove_session (session);
-   show_window ();
+   if (gui)
+      show_window ();
 }
 
 static void check_session_cb (struct session * session) {
@@ -259,6 +262,11 @@ static void print_session_cb (const struct session * session, char status[256]) 
 
 static int update_cb (void * unused) {
    g_list_foreach (sessions, (GFunc) check_session_cb, 0);
+   if (! gui) {
+      if (! sessions)
+         gtk_main_quit ();
+      return 0;
+   }
    char status[256];
    snprintf (status, sizeof status, "Logged in:");
    g_list_foreach (sessions, (GFunc) print_session_cb, status);
@@ -274,7 +282,8 @@ static int update_cb (void * unused) {
 }
 
 static int popup_cb (void * unused) {
-   show_window ();
+   if (gui)
+      show_window ();
    return 0;
 }
 
@@ -283,11 +292,12 @@ static void do_sleep (void) {
    unlock_vt ();
    wait_for_exit (launch (args));
    lock_vt ();
-   reset ();
+   if (gui)
+      reset ();
 }
 
 static int popup_and_sleep_cb (void * unused) {
-   if (show_window ())
+   if (! gui || show_window ())
       do_sleep ();
    return 0;
 }
@@ -365,7 +375,9 @@ static void change_runlevel (void) {
    wait_for_exit (launch (args));
 }
 
-int main (void) {
+int main (int argc, char * * argv) {
+   if (argc == 2)
+      gui = 0;
    set_user ("root");
    init_vt ();
    int old_vt = get_vt ();
@@ -375,16 +387,21 @@ int main (void) {
    run_setup ();
    g_thread_init (0);
    gtk_init (0, 0);
-   make_window ();
-   make_log_in_page ();
-   make_fail_page ();
-   make_tool_box ();
-   set_up_window ();
-   show_window ();
-   update_cb (0);
+   if (gui) {
+      make_window ();
+      make_log_in_page ();
+      make_fail_page ();
+      make_tool_box ();
+      set_up_window ();
+      show_window ();
+      update_cb (0);
+   }
    start_signal_thread ();
+   if (! gui)
+      start_session (argv[1]);
    gtk_main ();
-   gtk_widget_destroy (window);
+   if (gui)
+      gtk_widget_destroy (window);
    close_x (first_console);
    unlock_vt ();
    set_vt (old_vt);
