@@ -9,8 +9,8 @@ unset XDG_RUNTIME_DIR
 export LANG=en_US.UTF-8
 export SHELL=/bin/bash
 
-if test -f .wallpaper.jpg ; then xsetbg .wallpaper.jpg ; fi
+if test -f ~/.Xdefaults ; then xrdb ~/.Xdefaults ; fi
+if test -f ~/.wallpaper.jpg ; then xsetbg ~/.wallpaper.jpg ; fi
 
 dbus-launch xfce4-session
 killall -u $USER
-
