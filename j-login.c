@@ -1,6 +1,6 @@
 /* J Login >> j-login.c */
 /* John Lindgren */
-/* March 27, 2011 */
+/* September 11, 2011 */
 
 #include <pthread.h>
 #include <signal.h>

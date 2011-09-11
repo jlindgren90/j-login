@@ -1,12 +1,15 @@
 /* J Login >> utils.c */
 /* John Lindgren */
-/* March 27, 2011 */
+/* September 11, 2011 */
 
 #include <errno.h>
+#include <fcntl.h>
+#include <poll.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/inotify.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -55,6 +58,28 @@ char exist (const char * name) {
    if (errno == ENOENT)
       return 0;
    fail_two ("stat", name);
+}
+
+void wait_for_exist (const char * folder, const char * file)
+{
+   int handle = inotify_init ();
+   if (handle < 0)
+      fail ("inotify_init");
+   if (fcntl (handle, F_SETFD, FD_CLOEXEC) < 0)
+      fail_two ("FD_CLOEXEC", "inotify");
+   if (fcntl (handle, F_SETFL, O_NONBLOCK) < 0)
+      fail_two ("O_NONBLOCK", "inotify");
+   if (inotify_add_watch (handle, folder, IN_CREATE) < 0)
+      fail_two ("inotify_add_watch", folder);
+   while (! exist (file)) {
+      struct pollfd polldata = {.fd = handle, .events = POLLIN};
+      if (poll (& polldata, 1, 1000) < 0)
+         fail_two ("poll", "inotify");
+      struct inotify_event event;
+      while (read (handle, & event, sizeof event) == sizeof event)
+         ;
+   }
+   close (handle);
 }
 
 static void clear_signals (void) {

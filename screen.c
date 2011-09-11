@@ -1,6 +1,6 @@
 /* J Login >> screen.c */
 /* John Lindgren */
-/* March 27, 2011 */
+/* September 11, 2011 */
 
 #include <limits.h>
 #include <fcntl.h>
@@ -82,12 +82,8 @@ static int launch_x (int vt, int display) {
 static void wait_x (int process, int display) {
    char path[32];
    snprintf (path, sizeof path, "/tmp/.X11-unix/X%d", display);
-   while (! exist (path)) {
-      if (exited (process))
-         error ("X exited");
-      struct timespec delay = {.tv_sec = 0, .tv_nsec = 50000000};
-      nanosleep (& delay, 0);
-   }
+   wait_for_exist ("/tmp", "/tmp/.X11-unix");
+   wait_for_exist ("/tmp/.X11-unix", path);
 }
 
 static Display * grab_x (int display) {

@@ -1,6 +1,6 @@
 /* J Login >> utils.h */
 /* John Lindgren */
-/* March 27, 2011 */
+/* September 11, 2011 */
 
 #ifndef JLOGIN_UTILS_H
 #define JLOGIN_UTILS_H
@@ -18,6 +18,7 @@ void * my_malloc (int size);
 char * my_strdup (const char * string);
 void my_setenv (const char * name, const char * value);
 char exist (const char * file);
+void wait_for_exist (const char * folder, const char * file);
 int launch (const char * const * args);
 char exited (int process);
 void wait_for_exit (int process);
