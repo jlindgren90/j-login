@@ -23,7 +23,7 @@ struct session {
    int process;
 };
 
-static char gui = 1;
+static char gui = 0;
 static struct console * first_console;
 static GtkWidget * window, * fixed, * frame, * icon, * pages, * log_in_page,
  * fail_page, * prompt_box, * prompt, * name_entry, * password_entry,
@@ -33,6 +33,9 @@ static GtkWidget * window, * fixed, * frame, * icon, * pages, * log_in_page,
 static GList * sessions = 0;
 static char sessions_flag = 1;
 static int runlevel = 0;
+
+static void set_up_window (void);
+static int update_cb (void * unused);
 
 static void run_setup (void) {
    static const char * const args[2] = {"/usr/sbin/j-login-setup", 0};
@@ -149,6 +152,15 @@ static void do_layout (void) {
 }
 
 static char show_window (void) {
+   if (! gui) {
+      make_window ();
+      make_log_in_page ();
+      make_fail_page ();
+      make_tool_box ();
+      set_up_window ();
+      update_cb (0);
+      gui = 1;
+   }
    do_layout ();
    gtk_widget_show_all (window);
    gtk_window_present ((GtkWindow *) window);
@@ -164,6 +176,8 @@ static char show_window (void) {
 }
 
 static void hide_window (void) {
+   if (! gui)
+      return;
    unblock_x (GDK_WINDOW_XDISPLAY (window->window));
    gtk_widget_hide (window);
 }
@@ -211,8 +225,7 @@ static void start_session (const char * user) {
       console = start_x ();
       lock_vt ();
    } else {
-      if (gui)
-         hide_window ();
+      hide_window ();
       unlock_vt ();
       popup_x (first_console);
       lock_vt ();
@@ -233,7 +246,7 @@ static char try_activate_session (const char * user) {
    if (! node)
       return 0;
    const struct session * session = node->data;
-   if (gui && session->console == first_console)
+   if (session->console == first_console)
       hide_window ();
    unlock_vt ();
    popup_x (session->console);
@@ -246,8 +259,7 @@ static void end_session (struct session * session) {
    if (session->console != first_console)
       close_x (session->console);
    remove_session (session);
-   if (gui)
-      show_window ();
+   show_window ();
 }
 
 static void check_session_cb (struct session * session) {
@@ -262,11 +274,6 @@ static void print_session_cb (const struct session * session, char status[256]) 
 
 static int update_cb (void * unused) {
    g_list_foreach (sessions, (GFunc) check_session_cb, 0);
-   if (! gui) {
-      if (! sessions)
-         gtk_main_quit ();
-      return 0;
-   }
    char status[256];
    snprintf (status, sizeof status, "Logged in:");
    g_list_foreach (sessions, (GFunc) print_session_cb, status);
@@ -282,8 +289,7 @@ static int update_cb (void * unused) {
 }
 
 static int popup_cb (void * unused) {
-   if (gui)
-      show_window ();
+   show_window ();
    return 0;
 }
 
@@ -376,8 +382,6 @@ static void change_runlevel (void) {
 }
 
 int main (int argc, char * * argv) {
-   if (argc == 2)
-      gui = 0;
    set_user ("root");
    init_vt ();
    int old_vt = get_vt ();
@@ -387,18 +391,11 @@ int main (int argc, char * * argv) {
    run_setup ();
    g_thread_init (0);
    gtk_init (0, 0);
-   if (gui) {
-      make_window ();
-      make_log_in_page ();
-      make_fail_page ();
-      make_tool_box ();
-      set_up_window ();
-      show_window ();
-      update_cb (0);
-   }
    start_signal_thread ();
-   if (! gui)
+   if (argc == 2)
       start_session (argv[1]);
+   else
+      show_window ();
    gtk_main ();
    if (gui)
       gtk_widget_destroy (window);
