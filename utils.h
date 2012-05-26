@@ -7,13 +7,13 @@
 
 #define NAME "J Login"
 
-#ifndef __GNUC__
-#define __attribute__(...)
-#endif
+#define SPRINTF(n,...) \
+ char n[snprintf (0, 0, __VA_ARGS__)]; \
+ snprintf (n, sizeof n, __VA_ARGS__);
 
-void error (const char * message) __attribute__ ((noreturn));
-void fail (const char * func) __attribute__ ((noreturn));
-void fail_two (const char * func, const char * param) __attribute__ ((noreturn));
+void error (const char * message);
+void fail (const char * func);
+void fail2 (const char * func, const char * param);
 void * my_malloc (int size);
 char * my_strdup (const char * string);
 void my_setenv (const char * name, const char * value);

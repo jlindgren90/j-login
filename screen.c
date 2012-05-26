@@ -2,15 +2,13 @@
 /* John Lindgren */
 /* September 11, 2011 */
 
-#include <limits.h>
 #include <fcntl.h>
+#include <linux/vt.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/ioctl.h>
 #include <time.h>
 #include <unistd.h>
-
-#include <linux/vt.h>
-#include <sys/ioctl.h>
 
 #include "screen.h"
 #include "utils.h"
@@ -18,16 +16,15 @@
 static int vt_handle;
 
 void init_vt (void) {
-   vt_handle = open ("/dev/console", O_RDONLY);
-   if (vt_handle < 0)
-      fail_two ("open", "/dev/console");
+   if ((vt_handle = open ("/dev/console", O_RDONLY)) < 0)
+      fail2 ("open", "/dev/console");
    if (fcntl (vt_handle, F_SETFD, FD_CLOEXEC) < 0)
-      fail_two ("FD_CLOEXEC", "/dev/console");
+      fail2 ("FD_CLOEXEC", "/dev/console");
 }
 
 void close_vt (void) {
    if (close (vt_handle) < 0)
-      fail_two ("close", "/dev/console");
+      fail2 ("close", "/dev/console");
 }
 
 int get_vt (void) {
@@ -63,37 +60,34 @@ void unlock_vt (void) {
 
 static int get_open_display (void) {
    for (int display = 0; display < 100; display ++) {
-      char path[NAME_MAX];
-      snprintf (path, sizeof path, "/tmp/.X%d-lock", display);
+      SPRINTF (path, "/tmp/.X%d-lock", display);
       if (! exist (path))
          return display;
    }
    error ("no available display");
+   return -1;
 }
 
 static int launch_x (int vt, int display) {
-   char display_opt[16], vt_opt[16];
-   snprintf (display_opt, sizeof display_opt, ":%d", display);
-   snprintf (vt_opt, sizeof vt_opt, "vt%d", vt);
+   SPRINTF (display_opt, ":%d", display);
+   SPRINTF (vt_opt, "vt%d", vt);
    const char * const args[4] = {"X", display_opt, vt_opt, 0};
    return launch (args);
 }
 
 static void wait_x (int process, int display) {
-   char path[32];
-   snprintf (path, sizeof path, "/tmp/.X11-unix/X%d", display);
+   SPRINTF (path, "/tmp/.X11-unix/X%d", display);
    wait_for_exist ("/tmp", "/tmp/.X11-unix");
    wait_for_exist ("/tmp/.X11-unix", path);
 }
 
 static Display * grab_x (int display) {
-   char name[16];
-   snprintf (name, sizeof name, ":%d", display);
+   SPRINTF (name, ":%d", display);
    Display * handle = XOpenDisplay (name);
    if (! handle)
-      fail_two ("XOpenDisplay", name);
+      fail2 ("XOpenDisplay", name);
    if (fcntl (ConnectionNumber (handle), F_SETFD, FD_CLOEXEC) < 0)
-      fail_two ("FD_CLOEXEC", name);
+      fail2 ("FD_CLOEXEC", name);
    return handle;
 }
 
@@ -102,7 +96,7 @@ static void ungrab_x (Display * handle) {
 }
 
 struct console * start_x (void) {
-   struct console * console = malloc (sizeof (struct console));
+   struct console * console = my_malloc (sizeof (struct console));
    console->vt = get_open_vt ();
    set_vt (console->vt);
    console->display = get_open_display ();
@@ -123,8 +117,7 @@ void close_x (struct console * console) {
 }
 
 void set_display (int display) {
-   char name[16];
-   snprintf (name, sizeof name, ":%d", display);
+   SPRINTF (name, ":%d", display);
    my_setenv ("DISPLAY", name);
 }
 
