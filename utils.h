@@ -8,7 +8,7 @@
 #define NAME "J Login"
 
 #define SPRINTF(n,...) \
- char n[snprintf (0, 0, __VA_ARGS__)]; \
+ char n[snprintf (0, 0, __VA_ARGS__) + 1]; \
  snprintf (n, sizeof n, __VA_ARGS__);
 
 void error (const char * message);
