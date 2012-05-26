@@ -389,7 +389,6 @@ int main (int argc, char * * argv) {
    lock_vt ();
    set_display (first_console->display);
    run_setup ();
-   g_thread_init (0);
    gtk_init (0, 0);
    start_signal_thread ();
    if (argc == 2)
