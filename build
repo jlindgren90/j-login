@@ -2,6 +2,6 @@
 
 gcc -Wall -O2 -std=c99 -D_POSIX_C_SOURCE=200112L `pkg-config --cflags --libs \
  ck-connector gthread-2.0 gtk+-2.0 x11` -lcrypt -o j-login j-login.c screen.c \
- utils.c utils-linux.c
+ user.c utils.c
 
 strip -s j-login

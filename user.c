@@ -1,6 +1,6 @@
-/* J Login >> utils-linux.c */
+/* J Login >> user.c */
 /* John Lindgren */
-/* March 27, 2011 */
+/* May 26, 2012 */
 
 #define _BSD_SOURCE
 #define _XOPEN_SOURCE
