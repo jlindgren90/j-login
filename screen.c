@@ -82,7 +82,7 @@ static int get_open_display (void) {
 static int launch_x (int vt, int display) {
    SPRINTF (display_opt, ":%d", display);
    SPRINTF (vt_opt, "vt%d", vt);
-   const char * const args[4] = {"X", display_opt, vt_opt, 0};
+   const char * const args[] = {"X", display_opt, vt_opt, 0};
    return launch (args);
 }
 

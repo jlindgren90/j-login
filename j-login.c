@@ -33,7 +33,7 @@ static void set_up_window (void);
 static int update_cb (void * unused);
 
 static void run_setup (void) {
-   static const char * const args[2] = {"/usr/sbin/j-login-setup", 0};
+   static const char * const args[] = {"/usr/sbin/j-login-setup", 0};
    wait_for_exit (launch (args));
 }
 
@@ -177,7 +177,7 @@ static void hide_window (void) {
 }
 
 static int launch_session (const char * user) {
-   static const char * const args [2] = {"/usr/bin/j-session", 0};
+   static const char * const args[] = {"/usr/bin/j-session", 0};
    return launch_set_user (user, args);
 }
 
@@ -259,7 +259,7 @@ static int popup_cb (void * unused) {
 }
 
 static void do_sleep (void) {
-   static const char * const args[2] = {"/usr/sbin/j-login-sleep", 0};
+   static const char * const args[] = {"/usr/sbin/j-login-sleep", 0};
    unlock_vt ();
    wait_for_exit (launch (args));
    lock_vt ();
@@ -325,7 +325,7 @@ static void log_in (void) {
    free (password);
 }
 
-static void do_reboot (void) {
+static void queue_reboot (void) {
    reboot = 1;
    gtk_main_quit ();
 }
@@ -335,15 +335,16 @@ static void set_up_window (void) {
    g_signal_connect (ok_button, "clicked", (GCallback) reset, 0);
    g_signal_connect (sleep_button, "clicked", (GCallback) do_sleep, 0);
    g_signal_connect (shut_down_button, "clicked", (GCallback) gtk_main_quit, 0);
-   g_signal_connect (reboot_button, "clicked", (GCallback) do_reboot, 0);
+   g_signal_connect (reboot_button, "clicked", (GCallback) queue_reboot, 0);
    gtk_widget_grab_focus (name_entry);
    gtk_widget_grab_default (log_in_button);
 }
 
-static void runlevel (int level) {
-   SPRINTF (name, "%d", level);
-   const char * const args[3] = {"init", name, 0};
-   wait_for_exit (launch (args));
+static void poweroff ()
+{
+   const char * const poweroff_args[] = {"poweroff", 0};
+   const char * const reboot_args[] = {"reboot", 0};
+   wait_for_exit (launch (reboot ? reboot_args : poweroff_args));
 }
 
 int main (int argc, char * * argv) {
@@ -368,6 +369,6 @@ int main (int argc, char * * argv) {
    unlock_vt ();
    set_vt (old_vt);
    close_vt ();
-   runlevel (reboot ? 6 : 0);
+   poweroff ();
    return 0;
 }
