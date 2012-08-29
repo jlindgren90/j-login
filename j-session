@@ -11,5 +11,5 @@ export SHELL=/bin/bash
 
 if test -f ~/.Xdefaults ; then xrdb ~/.Xdefaults ; fi
 
-dbus-launch xfce4-session
+ck-launch-session dbus-launch xfce4-session
 killall -u $USER
