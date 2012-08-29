@@ -1,0 +1,9 @@
+[Unit]
+Description=J-Login
+Requires=dbus.socket
+
+[Service]
+ExecStart=/usr/sbin/j-login john
+
+[Install]
+WantedBy=multi-user.target

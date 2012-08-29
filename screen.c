@@ -13,7 +13,11 @@
 #include "screen.h"
 #include "utils.h"
 
+#define FIRST_VT 7
+#define MAX_VT 16
+
 static int vt_handle;
+static char vt_used[MAX_VT];
 
 void init_vt (void) {
    if ((vt_handle = open ("/dev/console", O_RDONLY)) < 0)
@@ -35,10 +39,17 @@ int get_vt (void) {
 }
 
 int get_open_vt (void) {
-   int vt;
-   if (ioctl (vt_handle, VT_OPENQRY, & vt) < 0)
-      fail ("VT_OPENQRY");
-   return vt;
+   for (int vt = FIRST_VT; vt < FIRST_VT + MAX_VT; vt ++) {
+      if (! vt_used[vt - FIRST_VT])
+         return vt;
+   }
+   error ("too many open VTs");
+   return -1;
+}
+
+void release_vt (int vt) {
+   if (vt >= FIRST_VT && vt < FIRST_VT + MAX_VT)
+      vt_used[vt - FIRST_VT] = 0;
 }
 
 void set_vt (int vt) {
@@ -113,6 +124,7 @@ void popup_x (const struct console * console) {
 void close_x (struct console * console) {
    ungrab_x (console->handle);
    my_kill (console->process);
+   release_vt (console->vt);
    free (console);
 }
 

@@ -16,6 +16,7 @@ void init_vt (void);
 void close_vt (void);
 int get_vt (void);
 int get_open_vt (void);
+void release_vt (int vt);
 void set_vt (int vt);
 void lock_vt (void);
 void unlock_vt (void);
