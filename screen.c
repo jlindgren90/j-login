@@ -40,8 +40,10 @@ int get_vt (void) {
 
 int get_open_vt (void) {
    for (int vt = FIRST_VT; vt < FIRST_VT + MAX_VT; vt ++) {
-      if (! vt_used[vt - FIRST_VT])
+      if (! vt_used[vt - FIRST_VT]) {
+         vt_used[vt - FIRST_VT] = 1;
          return vt;
+      }
    }
    error ("too many open VTs");
    return -1;
