@@ -1,6 +1,6 @@
 /* J Login >> j-login.c */
 /* John Lindgren */
-/* September 11, 2011 */
+/* September 17, 2012 */
 
 #include <pthread.h>
 #include <signal.h>
@@ -11,12 +11,14 @@
 #include <gdk/gdkx.h>
 #include <gtk/gtk.h>
 
+#include "pam.h"
 #include "screen.h"
 #include "utils.h"
 
 struct session {
    char * user;
    struct console * console;
+   void * pam_handle;
    int process;
 };
 
@@ -119,10 +121,11 @@ static void reset (void) {
 }
 
 static struct session * add_session (const char * user,
- struct console * console, int process) {
+ struct console * console, void * pam_handle, int process) {
    struct session * new = my_malloc (sizeof (struct session));
    new->user = my_strdup (user);
    new->console = console;
+   new->pam_handle = pam_handle;
    new->process = process;
    sessions = g_list_append (sessions, new);
    return new;
@@ -181,7 +184,7 @@ static int launch_session (const char * user) {
    return launch_set_user (user, args);
 }
 
-static void start_session (const char * user) {
+static void start_session (const char * user, const char * pass) {
    struct console * console;
    if (sessions) {
       unlock_vt ();
@@ -195,7 +198,8 @@ static void start_session (const char * user) {
       console = first_console;
    }
    set_display (console->display);
-   active_session = add_session (user, console, launch_session (user));
+   void * pam_handle = open_pam (user, pass, console->vt, console->display);
+   active_session = add_session (user, console, pam_handle, launch_session (user));
 }
 
 static int find_session_cb (const struct session * session, const char * user) {
@@ -220,6 +224,7 @@ static char try_activate_session (const char * user) {
 static void end_session (struct session * session) {
    if (session->console != first_console)
       close_x (session->console);
+   close_pam (session->pam_handle);
    remove_session (session);
    if (session == active_session) {
       active_session = 0;
@@ -312,7 +317,7 @@ static void log_in (void) {
    reset ();
    if (strcmp (name, "root") && check_password (name, password)) {
       if (! try_activate_session (name)) {
-         start_session (name);
+         start_session (name, password);
          update_cb (0);
       }
    } else {
@@ -357,10 +362,12 @@ int main (int argc, char * * argv) {
    run_setup ();
    gtk_init (0, 0);
    start_signal_thread ();
+#if 0
    if (argc == 2) {
       auto_user = argv[1];
       start_session (auto_user);
    } else
+#endif
       show_window ();
    gtk_main ();
    if (window)
