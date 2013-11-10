@@ -255,6 +255,8 @@ static int popup_cb (void * unused) {
 
 static void do_sleep (void) {
    static const char * const args[] = {"/usr/sbin/j-login-sleep", 0};
+   while (gtk_events_pending ())
+      gtk_main_iteration ();
    unlock_vt ();
    wait_for_exit (launch (args));
    lock_vt ();
