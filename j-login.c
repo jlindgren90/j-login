@@ -148,15 +148,8 @@ static void do_layout (void) {
 }
 
 static char show_window (void) {
-   if (! window) {
-      make_window ();
-      make_log_in_page ();
-      make_fail_page ();
-      make_tool_box ();
-      set_up_window ();
-      update_cb (0);
-   }
    do_layout ();
+   reset ();
    gtk_widget_show_all (window);
    gtk_window_present ((GtkWindow *) window);
    GdkWindow * gdkw = gtk_widget_get_window (window);
@@ -171,8 +164,6 @@ static char show_window (void) {
 }
 
 static void hide_window (void) {
-   if (! window)
-      return;
    GdkWindow * gdkw = gtk_widget_get_window (window);
    unblock_x (GDK_WINDOW_XDISPLAY (gdkw));
    gtk_widget_hide (window);
@@ -267,8 +258,6 @@ static void do_sleep (void) {
    unlock_vt ();
    wait_for_exit (launch (args));
    lock_vt ();
-   if (window)
-      reset ();
 }
 
 static int sleep_cb (void * unused) {
@@ -343,6 +332,15 @@ static void set_up_window (void) {
    gtk_widget_grab_default (log_in_button);
 }
 
+static void set_up_interface (void) {
+   make_window ();
+   make_log_in_page ();
+   make_fail_page ();
+   make_tool_box ();
+   set_up_window ();
+   update_cb (0);
+}
+
 static void poweroff ()
 {
    const char * const poweroff_args[] = {"poweroff", 0};
@@ -360,10 +358,10 @@ int main (int argc, char * * argv) {
    run_setup ();
    gtk_init (0, 0);
    start_signal_thread ();
+   set_up_interface ();
    show_window ();
    gtk_main ();
-   if (window)
-      gtk_widget_destroy (window);
+   gtk_widget_destroy (window);
    close_x (first_console);
    unlock_vt ();
    set_vt (old_vt);
