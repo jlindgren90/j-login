@@ -22,7 +22,6 @@ struct session {
    int process;
 };
 
-static const char * auto_user;
 static struct console * first_console;
 static GtkWidget * window, * fixed, * frame, * pages, * log_in_page,
  * fail_page, * name_entry, * password_entry, * log_in_button, * ok_button,
@@ -273,8 +272,7 @@ static void do_sleep (void) {
 }
 
 static int sleep_cb (void * unused) {
-   if ((auto_user && active_session && ! strcmp (auto_user,
-    active_session->user)) || show_window ())
+   if (show_window ())
       do_sleep ();
    return 0;
 }
@@ -362,13 +360,7 @@ int main (int argc, char * * argv) {
    run_setup ();
    gtk_init (0, 0);
    start_signal_thread ();
-#if 0
-   if (argc == 2) {
-      auto_user = argv[1];
-      start_session (auto_user);
-   } else
-#endif
-      show_window ();
+   show_window ();
    gtk_main ();
    if (window)
       gtk_widget_destroy (window);
