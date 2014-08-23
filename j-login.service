@@ -3,7 +3,7 @@ Description=J-Login
 Requires=dbus.socket
 
 [Service]
-ExecStart=/usr/sbin/j-login john
+ExecStart=/usr/sbin/j-login
 
 [Install]
 WantedBy=multi-user.target
