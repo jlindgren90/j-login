@@ -1,6 +1,6 @@
 #!/bin/sh
 
 gcc -Wall -O2 -std=c99 -D_POSIX_C_SOURCE=200112L `pkg-config --cflags --libs \
- gtk+-3.0 x11` -lcrypt -lpam -o j-login j-login.c pam.c screen.c utils.c
+ gtk+-2.0 x11` -lcrypt -lpam -o j-login j-login.c pam.c screen.c utils.c
 
 strip -s j-login

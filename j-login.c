@@ -42,21 +42,20 @@ static void make_window (void) {
    window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
    gtk_window_set_decorated ((GtkWindow *) window, 0);
    gtk_window_set_keep_above ((GtkWindow *) window, 1);
-   gtk_window_set_has_resize_grip ((GtkWindow *) window, 0);
    fixed = gtk_fixed_new ();
-   frame = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
+   frame = gtk_vbox_new (FALSE, 6);
    GtkWidget * icon = gtk_image_new_from_file ("/usr/share/pixmaps/j-login.png");
    gtk_box_pack_start ((GtkBox *) frame, icon, 0, 0, 0);
-   pages = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
+   pages = gtk_hbox_new (FALSE, 6);
    gtk_box_pack_start ((GtkBox *) frame, pages, 1, 0, 0);
    gtk_fixed_put ((GtkFixed *) fixed, frame, 0, 0);
    gtk_container_add ((GtkContainer *) window, fixed);
 }
 
 static void make_log_in_page (void) {
-   log_in_page = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
+   log_in_page = gtk_vbox_new (FALSE, 6);
    gtk_box_pack_start ((GtkBox *) pages, log_in_page, 1, 0, 0);
-   GtkWidget * prompt_box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
+   GtkWidget * prompt_box = gtk_hbox_new (FALSE, 6);
    GtkWidget * prompt = gtk_label_new ("Name and password:");
    gtk_box_pack_start ((GtkBox *) prompt_box, prompt, 0, 0, 0);
    gtk_box_pack_start ((GtkBox *) log_in_page, prompt_box, 0, 0, 0);
@@ -68,7 +67,7 @@ static void make_log_in_page (void) {
    gtk_box_pack_start ((GtkBox *) log_in_page, password_entry, 0, 0, 0);
    g_signal_connect_swapped (name_entry, "activate", (GCallback)
     gtk_widget_grab_focus, password_entry);
-   GtkWidget * log_in_button_box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
+   GtkWidget * log_in_button_box = gtk_hbox_new (FALSE, 6);
    log_in_button = gtk_button_new_with_label ("Log in");
    gtk_widget_set_can_focus (log_in_button, 0);
    gtk_widget_set_can_default (log_in_button, 1);
@@ -78,15 +77,15 @@ static void make_log_in_page (void) {
 }
 
 static void make_fail_page (void) {
-   fail_page = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
+   fail_page = gtk_vbox_new (FALSE, 6);
    gtk_widget_set_no_show_all (fail_page, 1);
    gtk_box_pack_start ((GtkBox *) pages, fail_page, 1, 0, 0);
-   GtkWidget * fail_message_box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
+   GtkWidget * fail_message_box = gtk_hbox_new (FALSE, 6);
    GtkWidget * fail_message = gtk_label_new ("Authentication failed.");
    gtk_box_pack_start ((GtkBox *) fail_message_box, fail_message, 0, 0, 0);
    gtk_widget_show_all (fail_message_box);
    gtk_box_pack_start ((GtkBox *) fail_page, fail_message_box, 0, 0, 0);
-   GtkWidget * ok_button_box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
+   GtkWidget * ok_button_box = gtk_hbox_new (FALSE, 6);
    ok_button = gtk_button_new_with_label ("O.K.");
    gtk_widget_set_can_default (ok_button, 1);
    gtk_box_pack_end ((GtkBox *) ok_button_box, ok_button, 0, 0, 0);
@@ -95,7 +94,7 @@ static void make_fail_page (void) {
 }
 
 static void make_tool_box (void) {
-   GtkWidget * tool_box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
+   GtkWidget * tool_box = gtk_hbox_new (FALSE, 6);
    gtk_box_pack_start ((GtkBox *) frame, tool_box, 0, 0, 0);
    status_bar = gtk_label_new ("");
    gtk_box_pack_start ((GtkBox *) tool_box, status_bar, 0, 0, 0);
