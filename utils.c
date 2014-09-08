@@ -173,12 +173,19 @@ int launch_set_user (const char * user, const char * password, int vt,
  int display, const char * const * args) {
    int process = fork ();
    if (! process) {
-      clear_signals ();
       set_display (display);
-      open_pam (user, password, vt, display);
-      set_user (user);
-      execvp (args[0], (char * const *) args);
-      fail2 ("execvp", args[0]);
+      void * pam = open_pam (user, password, vt, display);
+      int process2 = fork ();
+      if (! process2) {
+         clear_signals ();
+         set_user (user);
+         execvp (args[0], (char * const *) args);
+         fail2 ("execvp", args[0]);
+      } else if (process2 < 1)
+         fail ("fork");
+      wait_for_exit (process2);
+      close_pam (pam);
+      _exit (0);
    } else if (process < 1)
       fail ("fork");
    return process;
