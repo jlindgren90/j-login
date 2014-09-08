@@ -20,6 +20,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "pam.h"
+#include "screen.h"
 #include "utils.h"
 
 void error (const char * message) {
@@ -167,10 +169,13 @@ void set_user (const char * user) {
    my_setenv ("PATH", path);
 }
 
-int launch_set_user (const char * user, const char * const * args) {
+int launch_set_user (const char * user, const char * password, int vt,
+ int display, const char * const * args) {
    int process = fork ();
    if (! process) {
       clear_signals ();
+      set_display (display);
+      open_pam (user, password, vt, display);
       set_user (user);
       execvp (args[0], (char * const *) args);
       fail2 ("execvp", args[0]);

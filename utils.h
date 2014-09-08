@@ -26,6 +26,7 @@ void my_kill (int process);
 int get_user_id (const char * user);
 char check_password (const char * name, const char * password);
 void set_user (const char * user);
-int launch_set_user (const char * user, const char * const * args);
+int launch_set_user (const char * user, const char * password, int vt,
+ int display, const char * const * args);
 
 #endif

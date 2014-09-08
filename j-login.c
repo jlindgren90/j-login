@@ -11,14 +11,12 @@
 #include <gdk/gdkx.h>
 #include <gtk/gtk.h>
 
-#include "pam.h"
 #include "screen.h"
 #include "utils.h"
 
 struct session {
    char * user;
    struct console * console;
-   void * pam_handle;
    int process;
 };
 
@@ -119,11 +117,10 @@ static void reset (void) {
 }
 
 static struct session * add_session (const char * user,
- struct console * console, void * pam_handle, int process) {
+ struct console * console, int process) {
    struct session * new = my_malloc (sizeof (struct session));
    new->user = my_strdup (user);
    new->console = console;
-   new->pam_handle = pam_handle;
    new->process = process;
    sessions = g_list_append (sessions, new);
    return new;
@@ -168,9 +165,10 @@ static void hide_window (void) {
    gtk_widget_hide (window);
 }
 
-static int launch_session (const char * user) {
+static int launch_session (const char * user, const char * pass,
+ struct console * console) {
    static const char * const args[] = {"/usr/bin/j-session", 0};
-   return launch_set_user (user, args);
+   return launch_set_user (user, pass, console->vt, console->display, args);
 }
 
 static void start_session (const char * user, const char * pass) {
@@ -186,9 +184,8 @@ static void start_session (const char * user, const char * pass) {
       lock_vt ();
       console = first_console;
    }
-   set_display (console->display);
-   void * pam_handle = open_pam (user, pass, console->vt, console->display);
-   active_session = add_session (user, console, pam_handle, launch_session (user));
+   int process = launch_session (user, pass, console);
+   active_session = add_session (user, console, process);
 }
 
 static int find_session_cb (const struct session * session, const char * user) {
@@ -213,7 +210,6 @@ static char try_activate_session (const char * user) {
 static void end_session (struct session * session) {
    if (session->console != first_console)
       close_x (session->console);
-   close_pam (session->pam_handle);
    remove_session (session);
    if (session == active_session) {
       active_session = 0;
