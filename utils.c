@@ -2,7 +2,7 @@
 /* John Lindgren */
 /* May 26, 2012 */
 
-#define _BSD_SOURCE
+#define _DEFAULT_SOURCE
 #define _XOPEN_SOURCE
 
 #include <errno.h>
