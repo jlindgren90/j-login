@@ -6,4 +6,4 @@ Requires=dbus.socket
 ExecStart=/usr/sbin/j-login
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=graphical.target
