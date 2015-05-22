@@ -145,9 +145,7 @@ char check_password (const char * name, const char * password) {
       right = s->sp_pwdp;
    }
    const char * crypted = crypt (password, right);
-   if (! crypted)
-      fail ("crypt");
-   return ! strcmp (crypted, right);
+   return crypted && ! strcmp (crypted, right);
 }
 
 void set_user (const char * user) {
