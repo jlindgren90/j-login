@@ -222,9 +222,9 @@ static void check_session_cb (struct session * session) {
       end_session (session);
 }
 
-static void print_session_cb (const struct session * session, char status[256]) {
+static void print_session_cb (const struct session * session, char * status) {
    int length = strlen (status);
-   snprintf (status + length, sizeof status - length, " %s", session->user);
+   snprintf (status + length, 256 - length, " %s", session->user);
 }
 
 static int update_cb (void * unused) {
