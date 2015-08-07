@@ -165,6 +165,11 @@ static void hide_window (void) {
    gtk_widget_hide (window);
 }
 
+static void screen_changed (void) {
+   if (gtk_widget_get_visible (window))
+      do_layout ();
+}
+
 static int launch_session (const char * user, const char * pass,
  struct console * console) {
    static const char * const args[] = {"/usr/bin/j-session", 0};
@@ -320,6 +325,9 @@ static void queue_reboot (void) {
 }
 
 static void set_up_window (void) {
+   GdkScreen * screen = gtk_widget_get_screen (window);
+   g_signal_connect (screen, "monitors-changed", (GCallback) screen_changed, 0);
+   g_signal_connect (screen, "size-changed", (GCallback) screen_changed, 0);
    g_signal_connect (log_in_button, "clicked", (GCallback) log_in, 0);
    g_signal_connect (ok_button, "clicked", (GCallback) reset, 0);
    g_signal_connect (sleep_button, "clicked", (GCallback) do_sleep, 0);
