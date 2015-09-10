@@ -38,7 +38,6 @@ static void run_setup (void) {
 
 static void make_window (void) {
    window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-   gtk_window_set_decorated ((GtkWindow *) window, 0);
    gtk_window_set_keep_above ((GtkWindow *) window, 1);
    fixed = gtk_fixed_new ();
    frame = gtk_vbox_new (FALSE, 6);
@@ -163,6 +162,11 @@ static void hide_window (void) {
    GdkWindow * gdkw = gtk_widget_get_window (window);
    unblock_x (GDK_WINDOW_XDISPLAY (gdkw));
    gtk_widget_hide (window);
+}
+
+static void realize_cb (void) {
+   GdkWindow * gdkw = gtk_widget_get_window (window);
+   gdk_window_set_override_redirect (gdkw, 1);
 }
 
 static void screen_changed (void) {
@@ -325,6 +329,7 @@ static void queue_reboot (void) {
 }
 
 static void set_up_window (void) {
+   g_signal_connect (window, "realize", (GCallback) realize_cb, 0);
    GdkScreen * screen = gtk_widget_get_screen (window);
    g_signal_connect (screen, "monitors-changed", (GCallback) screen_changed, 0);
    g_signal_connect (screen, "size-changed", (GCallback) screen_changed, 0);
