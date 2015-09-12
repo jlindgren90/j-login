@@ -6,10 +6,14 @@ unset XDG_DATA_DIRS
 unset XDG_CONFIG_DIRS
 unset XDG_CACHE_HOME
 unset XDG_RUNTIME_DIR
+
 export LANG=en_US.UTF-8
 export SHELL=/bin/bash
 
-if test -f ~/.Xdefaults ; then xrdb ~/.Xdefaults ; fi
+if test -f $HOME/.xsession ; then
+    . $HOME/.xsession
+else
+    xterm
+fi
 
-dbus-launch xfce4-session
-killall -u $USER
+exec killall -u $USER
