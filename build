@@ -1,6 +1,6 @@
 #!/bin/sh
 
-gcc -Wall -O2 -std=c99 -D_POSIX_C_SOURCE=200112L `pkg-config --cflags --libs \
- gtk+-2.0 x11` -lcrypt -lpam -o j-login j-login.c pam.c screen.c utils.c
+CFLAGS=`pkg-config --cflags gtk+-2.0 x11`
+LIBS=`pkg-config --libs gtk+-2.0 x11`
 
-strip -s j-login
+gcc -Wall -O2 -std=c99 -D_POSIX_C_SOURCE=200112L ${CFLAGS} -o j-login j-login.c pam.c screen.c utils.c -lcrypt -lpam ${LIBS}
