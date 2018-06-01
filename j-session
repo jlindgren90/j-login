@@ -11,9 +11,9 @@ export LANG=en_US.UTF-8
 export SHELL=/bin/bash
 
 if test -f $HOME/.xsession ; then
-    . $HOME/.xsession
+    sh $HOME/.xsession
 else
     xterm
 fi
 
-exec killall -u $USER
+exec killall -w -u $USER
