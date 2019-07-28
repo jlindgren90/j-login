@@ -11,17 +11,21 @@ clean :
 	rm -f j-login
 
 uninstall :
-	rm -f /usr/bin/j-session
-	rm -f /usr/sbin/j-login
-	rm -f /usr/sbin/j-login-setup
-	rm -f /usr/sbin/j-login-sleep
-	rm -f /lib/systemd/system/j-login.service
-	rm -f /usr/share/pixmaps/j-login.png
+	rm -f ${DESTDIR}/usr/bin/j-session
+	rm -f ${DESTDIR}/usr/sbin/j-login
+	rm -f ${DESTDIR}/usr/sbin/j-login-setup
+	rm -f ${DESTDIR}/usr/sbin/j-login-sleep
+	rm -f ${DESTDIR}/lib/systemd/system/j-login.service
+	rm -f ${DESTDIR}/usr/share/pixmaps/j-login.png
 
-install : uninstall
-	cp j-session /usr/bin/
-	cp j-login /usr/sbin/
-	cp j-login-setup /usr/sbin/
-	cp j-login-sleep /usr/sbin/
-	cp j-login.service /lib/systemd/system/
-	cp j-login.png /usr/share/pixmaps/
+install :
+	mkdir -p ${DESTDIR}/usr/bin
+	mkdir -p ${DESTDIR}/usr/sbin
+	mkdir -p ${DESTDIR}/lib/systemd/system
+	mkdir -p ${DESTDIR}/usr/share/pixmaps
+	cp j-session ${DESTDIR}/usr/bin/
+	cp j-login ${DESTDIR}/usr/sbin/
+	cp j-login-setup ${DESTDIR}/usr/sbin/
+	cp j-login-sleep ${DESTDIR}/usr/sbin/
+	cp j-login.service ${DESTDIR}/lib/systemd/system/
+	cp j-login.png ${DESTDIR}/usr/share/pixmaps/
