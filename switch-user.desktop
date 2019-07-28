@@ -1,6 +1,0 @@
-[Desktop Entry]
-Type=Application
-Categories=Session
-Name=Switch User
-Icon=system-lock-screen
-Exec=sudo pkill -USR1 j-login

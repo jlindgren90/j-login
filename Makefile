@@ -16,10 +16,7 @@ uninstall :
 	rm -f /usr/sbin/j-login-setup
 	rm -f /usr/sbin/j-login-sleep
 	rm -f /lib/systemd/system/j-login.service
-	rm -f /usr/share/applications/log-out.desktop
-	rm -f /usr/share/applications/switch-user.desktop
 	rm -f /usr/share/pixmaps/j-login.png
-	update-desktop-database
 
 install : uninstall
 	cp j-session /usr/bin/
@@ -27,7 +24,4 @@ install : uninstall
 	cp j-login-setup /usr/sbin/
 	cp j-login-sleep /usr/sbin/
 	cp j-login.service /lib/systemd/system/
-	cp log-out.desktop /usr/share/applications/
-	cp switch-user.desktop /usr/share/applications/
 	cp j-login.png /usr/share/pixmaps/
-	update-desktop-database
