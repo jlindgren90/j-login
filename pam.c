@@ -18,6 +18,8 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <security/pam_appl.h>
 
 #include "pam.h"
@@ -33,19 +35,40 @@ static int callback (int count, const struct pam_message * * msgs,
    return PAM_SUCCESS;
 }
 
+static void import_pam_env (pam_handle_t * handle) {
+   char * * envlist = pam_getenvlist (handle);
+   if (! envlist)
+      return;
+   for (char * * env = envlist; * env; env ++) {
+      char * eq = strchr (* env, '=');
+      if (eq) {
+         * eq = 0;
+         my_setenv (* env, eq + 1);
+      }
+      free (* env);
+   }
+   free (envlist);
+}
+
 void * open_pam (const char * user, const char * pass, int vt, int display) {
-   struct pam_conv conv;
+   struct pam_conv conv = {
+      .conv = callback,
+      .appdata_ptr = (void *) pass
+   };
    pam_handle_t * handle;
-   conv.conv = callback;
-   conv.appdata_ptr = (void *) pass;
    if (pam_start ("login", user, & conv, & handle) != PAM_SUCCESS)
       return 0;
-   pam_authenticate (handle, 0);
+   if (pam_authenticate (handle, 0) != PAM_SUCCESS)
+      fail ("pam_authenticate");
    SPRINTF (vt_name, "/dev/tty%d", vt);
    pam_set_item (handle, PAM_TTY, vt_name);
    SPRINTF (disp_name, ":%d", display);
    pam_set_item (handle, PAM_XDISPLAY, disp_name);
-   pam_open_session (handle, 0);
+   if (pam_setcred (handle, PAM_ESTABLISH_CRED) != PAM_SUCCESS)
+      fail ("pam_setcred");
+   if (pam_open_session (handle, 0) != PAM_SUCCESS)
+      fail ("pam_open_session");
+   import_pam_env (handle);
    return handle;
 }
 
