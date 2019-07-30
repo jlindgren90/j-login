@@ -1,19 +1,10 @@
 #!/bin/sh
 
-unset XDG_DATA_HOME
-unset XDG_CONFIG_HOME
-unset XDG_DATA_DIRS
-unset XDG_CONFIG_DIRS
-unset XDG_CACHE_HOME
-unset XDG_RUNTIME_DIR
-
 export LANG=en_US.UTF-8
 export SHELL=/bin/bash
 
 if test -f $HOME/.xsession ; then
-    $HOME/.xsession
+    exec $HOME/.xsession
 else
-    xterm
+    exec xterm
 fi
-
-exec killall -w -u $USER
