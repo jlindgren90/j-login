@@ -40,7 +40,6 @@ int launch (const char * const * args);
 bool exited (int process);
 void wait_for_exit (int process);
 void my_kill (int process);
-int get_user_id (const char * user);
 bool check_password (const char * name, const char * password);
 void set_user (const char * user);
 int launch_set_user (const char * user, const char * password, int vt,

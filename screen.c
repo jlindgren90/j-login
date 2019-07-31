@@ -93,7 +93,7 @@ static int launch_x (int vt, int display) {
    return launch (args);
 }
 
-static void wait_x (int process, int display) {
+static void wait_x (int display) {
    SPRINTF (path, "/tmp/.X11-unix/X%d", display);
    wait_for_exist ("/tmp", "/tmp/.X11-unix");
    wait_for_exist ("/tmp/.X11-unix", path);
@@ -105,7 +105,7 @@ struct console * start_x (void) {
    set_vt (console->vt);
    console->display = get_open_display ();
    console->process = launch_x (console->vt, console->display);
-   wait_x (console->process, console->display);
+   wait_x (console->display);
    return console;
 }
 

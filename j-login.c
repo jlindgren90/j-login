@@ -233,7 +233,8 @@ static void end_session (struct session * session) {
    }
 }
 
-static void check_session_cb (struct session * session) {
+static void check_session_cb (struct session * session, void * unused) {
+   (void) unused;
    if (exited (session->process))
       end_session (session);
 }
@@ -244,6 +245,7 @@ static void print_session_cb (const struct session * session, char * status) {
 }
 
 static int update_cb (void * unused) {
+   (void) unused;
    g_list_foreach (sessions, (GFunc) check_session_cb, NULL);
    char status[256];
    snprintf (status, sizeof status, "Logged in:");
@@ -260,6 +262,7 @@ static int update_cb (void * unused) {
 }
 
 static int popup_cb (void * unused) {
+   (void) unused;
    show_window ();
    return G_SOURCE_REMOVE;
 }
@@ -272,12 +275,14 @@ static void do_sleep (void) {
 }
 
 static int sleep_cb (void * unused) {
+   (void) unused;
    if (show_window ())
       do_sleep ();
    return G_SOURCE_REMOVE;
 }
 
 static void * signal_thread (void * unused) {
+   (void) unused;
    sigset_t signals;
    sigemptyset (& signals);
    sigaddset (& signals, SIGCHLD);
@@ -363,7 +368,7 @@ static void poweroff ()
    wait_for_exit (launch (reboot ? reboot_args : poweroff_args));
 }
 
-int main (int argc, char * * argv) {
+int main (void) {
    set_user ("root");
    init_vt ();
    int old_vt = get_vt ();

@@ -143,11 +143,6 @@ void my_kill (int process) {
    wait_for_exit (process);
 }
 
-int get_user_id (const char * user) {
-   const struct passwd * p = getpwnam (user);
-   return p ? p->pw_uid : -1;
-}
-
 bool check_password (const char * name, const char * password) {
    const struct passwd * p = getpwnam (name);
    if (! p)
