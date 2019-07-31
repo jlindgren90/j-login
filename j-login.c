@@ -369,8 +369,8 @@ int main (int argc, char * * argv) {
    int old_vt = get_vt ();
    first_console = start_x ();
    set_display (first_console->display);
-   run_setup ();
    gtk_init (0, 0);
+   run_setup ();
    start_signal_thread ();
    set_up_interface ();
    show_window ();

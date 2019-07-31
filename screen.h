@@ -24,7 +24,6 @@
 
 struct console {
    int vt, display, process;
-   Display * handle;
 };
 
 void init_vt (void);

@@ -99,20 +99,6 @@ static void wait_x (int process, int display) {
    wait_for_exist ("/tmp/.X11-unix", path);
 }
 
-static Display * grab_x (int display) {
-   SPRINTF (name, ":%d", display);
-   Display * handle = XOpenDisplay (name);
-   if (! handle)
-      fail2 ("XOpenDisplay", name);
-   if (fcntl (ConnectionNumber (handle), F_SETFD, FD_CLOEXEC) < 0)
-      fail2 ("FD_CLOEXEC", name);
-   return handle;
-}
-
-static void ungrab_x (Display * handle) {
-   XCloseDisplay (handle);
-}
-
 struct console * start_x (void) {
    struct console * console = my_malloc (sizeof (struct console));
    console->vt = get_open_vt ();
@@ -120,7 +106,6 @@ struct console * start_x (void) {
    console->display = get_open_display ();
    console->process = launch_x (console->vt, console->display);
    wait_x (console->process, console->display);
-   console->handle = grab_x (console->display);
    return console;
 }
 
@@ -129,7 +114,6 @@ void popup_x (const struct console * console) {
 }
 
 void close_x (struct console * console) {
-   ungrab_x (console->handle);
    my_kill (console->process);
    release_vt (console->vt);
    free (console);
