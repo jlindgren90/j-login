@@ -29,6 +29,37 @@
 #include "screen.h"
 #include "utils.h"
 
+/* override GTK symbol so that GTK never releases our grab */
+GdkGrabStatus gdk_pointer_grab (GdkWindow * window, gboolean owner_events,
+ GdkEventMask event_mask, GdkWindow * confine_to, GdkCursor * cursor,
+ guint32 time) {
+   (void) window;
+   (void) owner_events;
+   (void) event_mask;
+   (void) confine_to;
+   (void) cursor;
+   (void) time;
+   return GDK_GRAB_ALREADY_GRABBED;
+}
+
+/* override GTK symbol so that GTK never releases our grab */
+void gdk_pointer_ungrab (guint32 time) {
+   (void) time;
+}
+
+/* override GTK symbol so that GTK never releases our grab */
+GdkGrabStatus gdk_keyboard_grab (GdkWindow * window, gboolean owner_events, guint32 time) {
+   (void) window;
+   (void) owner_events;
+   (void) time;
+   return GDK_GRAB_ALREADY_GRABBED;
+}
+
+/* override GTK symbol so that GTK never releases our grab */
+void gdk_keyboard_ungrab (guint32 time) {
+   (void) time;
+}
+
 typedef struct {
    char * user;
    console_t * console;
