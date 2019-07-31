@@ -30,8 +30,10 @@ static int callback (int count, const struct pam_message * * msgs,
    if (count != 1 || (* msgs)->msg_style != PAM_PROMPT_ECHO_OFF)
       return PAM_CONV_ERR;
    * resps = my_malloc (sizeof (struct pam_response));
-   (* resps)->resp = my_strdup (pass);
-   (* resps)->resp_retcode = 0;
+   * * resps = (struct pam_response) {
+      .resp = my_strdup (pass),
+      .resp_retcode = 0
+   };
    return PAM_SUCCESS;
 }
 

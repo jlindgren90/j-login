@@ -86,7 +86,7 @@ static int get_open_display (void) {
    return -1;
 }
 
-static int launch_x (int vt, int display) {
+static pid_t launch_x (int vt, int display) {
    SPRINTF (display_opt, ":%d", display);
    SPRINTF (vt_opt, "vt%d", vt);
    const char * const args[] = {"X", display_opt, vt_opt, 0};
@@ -99,8 +99,8 @@ static void wait_x (int display) {
    wait_for_exist ("/tmp/.X11-unix", path);
 }
 
-struct console * start_x (void) {
-   struct console * console = my_malloc (sizeof (struct console));
+console_t * start_x (void) {
+   console_t * console = my_malloc (sizeof (console_t));
    console->vt = get_open_vt ();
    set_vt (console->vt);
    console->display = get_open_display ();
@@ -109,11 +109,11 @@ struct console * start_x (void) {
    return console;
 }
 
-void popup_x (const struct console * console) {
+void popup_x (const console_t * console) {
    set_vt (console->vt);
 }
 
-void close_x (struct console * console) {
+void close_x (console_t * console) {
    my_kill (console->process);
    release_vt (console->vt);
    free (console);

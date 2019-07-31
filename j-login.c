@@ -29,17 +29,17 @@
 #include "screen.h"
 #include "utils.h"
 
-struct session {
+typedef struct {
    char * user;
-   struct console * console;
-   int process;
-};
+   console_t * console;
+   pid_t process;
+} session_t;
 
-static struct console * first_console;
+static console_t * first_console;
 static GtkWidget * window, * fixed, * frame, * pages, * log_in_page,
  * fail_page, * name_entry, * password_entry, * log_in_button, * ok_button,
  * status_bar, * sleep_button, * shut_down_button, * reboot_button;
-static const struct session * active_session;
+static const session_t * active_session;
 static GList * sessions;
 static bool reboot;
 
@@ -130,9 +130,8 @@ static void reset (void) {
    gtk_widget_grab_default (log_in_button);
 }
 
-static struct session * add_session (const char * user,
- struct console * console, int process) {
-   struct session * new = my_malloc (sizeof (struct session));
+static session_t * add_session (const char * user, console_t * console, pid_t process) {
+   session_t * new = my_malloc (sizeof (session_t));
    new->user = my_strdup (user);
    new->console = console;
    new->process = process;
@@ -140,7 +139,7 @@ static struct session * add_session (const char * user,
    return new;
 }
 
-static void remove_session (struct session * session) {
+static void remove_session (session_t * session) {
    sessions = g_list_remove (sessions, session);
    free (session->user);
    free (session);
@@ -148,11 +147,11 @@ static void remove_session (struct session * session) {
 
 static void do_layout (void) {
    GdkScreen * screen = gtk_window_get_screen ((GtkWindow *) window);
-   gtk_window_resize ((GtkWindow *) window, gdk_screen_get_width (screen),
-    gdk_screen_get_height (screen));
+   int monitor = gdk_screen_get_primary_monitor (screen);
+   int w = gdk_screen_get_width (screen), h = gdk_screen_get_height (screen);
+   gtk_window_resize ((GtkWindow *) window, w, h);
    GdkRectangle rect;
-   gdk_screen_get_monitor_geometry (screen, gdk_screen_get_primary_monitor
-    (screen), & rect);
+   gdk_screen_get_monitor_geometry (screen, monitor, & rect);
    gtk_fixed_move ((GtkFixed *) fixed, frame, rect.x + 6, rect.y + 6);
    gtk_widget_set_size_request (frame, rect.width - 12, rect.height - 12);
 }
@@ -187,14 +186,13 @@ static void screen_changed (void) {
       do_layout ();
 }
 
-static int launch_session (const char * user, const char * pass,
- struct console * console) {
+static pid_t launch_session (const char * user, const char * pass, console_t * console) {
    static const char * const args[] = {"/usr/bin/j-session", NULL};
    return launch_set_user (user, pass, console->vt, console->display, args);
 }
 
 static void start_session (const char * user, const char * pass) {
-   struct console * console;
+   console_t * console;
    if (sessions)
       console = start_x ();
    else {
@@ -202,20 +200,19 @@ static void start_session (const char * user, const char * pass) {
       popup_x (first_console);
       console = first_console;
    }
-   int process = launch_session (user, pass, console);
+   pid_t process = launch_session (user, pass, console);
    active_session = add_session (user, console, process);
 }
 
-static int find_session_cb (const struct session * session, const char * user) {
+static int find_session_cb (const session_t * session, const char * user) {
    return strcmp (session->user, user);
 }
 
 static bool try_activate_session (const char * user) {
-   GList * node = g_list_find_custom (sessions, user, (GCompareFunc)
-    find_session_cb);
+   GList * node = g_list_find_custom (sessions, user, (GCompareFunc) find_session_cb);
    if (! node)
       return false;
-   const struct session * session = node->data;
+   const session_t * session = node->data;
    if (session->console == first_console)
       hide_window ();
    popup_x (session->console);
@@ -223,7 +220,7 @@ static bool try_activate_session (const char * user) {
    return true;
 }
 
-static void end_session (struct session * session) {
+static void end_session (session_t * session) {
    if (session->console != first_console)
       close_x (session->console);
    remove_session (session);
@@ -233,13 +230,13 @@ static void end_session (struct session * session) {
    }
 }
 
-static void check_session_cb (struct session * session, void * unused) {
+static void check_session_cb (session_t * session, void * unused) {
    (void) unused;
    if (exited (session->process))
       end_session (session);
 }
 
-static void print_session_cb (const struct session * session, char * status) {
+static void print_session_cb (const session_t * session, char * status) {
    int length = strlen (status);
    snprintf (status + length, 256 - length, " %s", session->user);
 }

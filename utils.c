@@ -112,8 +112,8 @@ static void clear_signals (void) {
       fail ("sigprocmask");
 }
 
-int launch (const char * const * args) {
-   int process = fork ();
+pid_t launch (const char * const * args) {
+   pid_t process = fork ();
    if (! process) {
       clear_signals ();
       execvp (args[0], (char * const *) args);
@@ -123,21 +123,21 @@ int launch (const char * const * args) {
    return process;
 }
 
-bool exited (int process) {
+bool exited (pid_t process) {
    int status;
-   int result = waitpid (process, & status, WNOHANG);
+   pid_t result = waitpid (process, & status, WNOHANG);
    return (result == process && ! WIFSTOPPED (status) && ! WIFCONTINUED
     (status)) || (result < 0 && errno != EINTR);
 }
 
-void wait_for_exit (int process) {
+void wait_for_exit (pid_t process) {
    int status;
    while (waitpid (process, & status, 0) != process || WIFSTOPPED (status) ||
     WIFCONTINUED (status))
       ;
 }
 
-void my_kill (int process) {
+void my_kill (pid_t process) {
    if (kill (process, SIGTERM))
       fail ("kill");
    wait_for_exit (process);
@@ -177,13 +177,13 @@ void set_user (const char * user) {
    my_setenv ("PATH", path);
 }
 
-int launch_set_user (const char * user, const char * password, int vt,
+pid_t launch_set_user (const char * user, const char * password, int vt,
  int display, const char * const * args) {
-   int process = fork ();
+   pid_t process = fork ();
    if (! process) {
       set_display (display);
       void * pam = open_pam (user, password, vt, display);
-      int process2 = fork ();
+      pid_t process2 = fork ();
       if (! process2) {
          clear_signals ();
          set_user (user);

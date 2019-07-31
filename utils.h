@@ -21,6 +21,7 @@
 #define JLOGIN_UTILS_H
 
 #include <stdbool.h>
+#include <sys/types.h>
 
 #define NAME "J Login"
 
@@ -36,13 +37,13 @@ char * my_strdup (const char * string);
 void my_setenv (const char * name, const char * value);
 bool exist (const char * file);
 void wait_for_exist (const char * folder, const char * file);
-int launch (const char * const * args);
-bool exited (int process);
-void wait_for_exit (int process);
-void my_kill (int process);
+pid_t launch (const char * const * args);
+bool exited (pid_t process);
+void wait_for_exit (pid_t process);
+void my_kill (pid_t process);
 bool check_password (const char * name, const char * password);
 void set_user (const char * user);
-int launch_set_user (const char * user, const char * password, int vt,
+pid_t launch_set_user (const char * user, const char * password, int vt,
  int display, const char * const * args);
 
 #endif

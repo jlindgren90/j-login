@@ -23,9 +23,10 @@
 #include <stdbool.h>
 #include <X11/Xlib.h>
 
-struct console {
-   int vt, display, process;
-};
+typedef struct {
+   int vt, display;
+   pid_t process;
+} console_t;
 
 void init_vt (void);
 void close_vt (void);
@@ -34,9 +35,9 @@ int get_open_vt (void);
 void release_vt (int vt);
 void set_vt (int vt);
 
-struct console * start_x (void);
-void popup_x (const struct console * console);
-void close_x (struct console * console);
+console_t * start_x (void);
+void popup_x (const console_t * console);
+void close_x (console_t * console);
 void set_display (int display);
 bool block_x (Display * handle, Window window);
 void unblock_x (Display * handle);
