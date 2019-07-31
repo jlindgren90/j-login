@@ -37,7 +37,7 @@ typedef struct {
 
 static console_t * first_console;
 static GtkWidget * window, * fixed, * frame, * pages, * log_in_page,
- * fail_page, * name_entry, * password_entry, * log_in_button, * ok_button,
+ * fail_page, * name_entry, * password_entry, * log_in_button, * back_button,
  * status_bar, * sleep_button, * shut_down_button, * reboot_button;
 static const session_t * active_session;
 static GList * sessions;
@@ -97,12 +97,12 @@ static void make_fail_page (void) {
    gtk_box_pack_start ((GtkBox *) fail_message_box, fail_message, false, false, 0);
    gtk_widget_show_all (fail_message_box);
    gtk_box_pack_start ((GtkBox *) fail_page, fail_message_box, false, false, 0);
-   GtkWidget * ok_button_box = gtk_hbox_new (false, 6);
-   ok_button = gtk_button_new_with_label ("O.K.");
-   gtk_widget_set_can_default (ok_button, true);
-   gtk_box_pack_end ((GtkBox *) ok_button_box, ok_button, false, false, 0);
-   gtk_widget_show_all (ok_button_box);
-   gtk_box_pack_start ((GtkBox *) fail_page, ok_button_box, false, false, 0);
+   GtkWidget * back_button_box = gtk_hbox_new (false, 6);
+   back_button = gtk_button_new_with_label ("Go back");
+   gtk_widget_set_can_default (back_button, true);
+   gtk_box_pack_end ((GtkBox *) back_button_box, back_button, false, false, 0);
+   gtk_widget_show_all (back_button_box);
+   gtk_box_pack_start ((GtkBox *) fail_page, back_button_box, false, false, 0);
 }
 
 static void make_tool_box (void) {
@@ -323,8 +323,8 @@ static void log_in (void) {
    } else {
       gtk_widget_hide (log_in_page);
       gtk_widget_show (fail_page);
-      gtk_widget_grab_focus (ok_button);
-      gtk_widget_grab_default (ok_button);
+      gtk_widget_grab_focus (back_button);
+      gtk_widget_grab_default (back_button);
    }
    free (name);
    free (password);
@@ -341,7 +341,7 @@ static void set_up_window (void) {
    g_signal_connect (screen, "monitors-changed", (GCallback) screen_changed, NULL);
    g_signal_connect (screen, "size-changed", (GCallback) screen_changed, NULL);
    g_signal_connect (log_in_button, "clicked", (GCallback) log_in, NULL);
-   g_signal_connect (ok_button, "clicked", (GCallback) reset, NULL);
+   g_signal_connect (back_button, "clicked", (GCallback) reset, NULL);
    g_signal_connect (sleep_button, "clicked", (GCallback) do_sleep, NULL);
    g_signal_connect (shut_down_button, "clicked", (GCallback) gtk_main_quit, NULL);
    g_signal_connect (reboot_button, "clicked", (GCallback) queue_reboot, NULL);
