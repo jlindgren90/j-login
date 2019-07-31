@@ -70,17 +70,17 @@ char * my_strdup (const char * string) {
 }
 
 void my_setenv (const char * name, const char * value) {
-   if (setenv (name, value, 1))
+   if (setenv (name, value, true))
       fail ("setenv");
 }
 
-char exist (const char * name) {
+bool exist (const char * name) {
    struct stat buf;
    if (! lstat (name, & buf))
-      return 1;
+      return true;
    if (errno != ENOENT)
       fail2 ("stat", name);
-   return 0;
+   return false;
 }
 
 void wait_for_exist (const char * folder, const char * file)
@@ -108,7 +108,7 @@ void wait_for_exist (const char * folder, const char * file)
 static void clear_signals (void) {
    sigset_t signals;
    sigemptyset (& signals);
-   if (sigprocmask (SIG_SETMASK, & signals, 0) < 0)
+   if (sigprocmask (SIG_SETMASK, & signals, NULL) < 0)
       fail ("sigprocmask");
 }
 
@@ -123,7 +123,7 @@ int launch (const char * const * args) {
    return process;
 }
 
-char exited (int process) {
+bool exited (int process) {
    int status;
    int result = waitpid (process, & status, WNOHANG);
    return (result == process && ! WIFSTOPPED (status) && ! WIFCONTINUED
@@ -148,15 +148,15 @@ int get_user_id (const char * user) {
    return p ? p->pw_uid : -1;
 }
 
-char check_password (const char * name, const char * password) {
+bool check_password (const char * name, const char * password) {
    const struct passwd * p = getpwnam (name);
    if (! p)
-      return 0;
+      return false;
    const char * right = p->pw_passwd;
    if (! strcmp (right, "x")) {
       const struct spwd * s = getspnam (name);
       if (! s)
-         return 0;
+         return false;
       right = s->sp_pwdp;
    }
    const char * crypted = crypt (password, right);

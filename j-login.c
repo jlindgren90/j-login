@@ -41,84 +41,84 @@ static GtkWidget * window, * fixed, * frame, * pages, * log_in_page,
  * status_bar, * sleep_button, * shut_down_button, * reboot_button;
 static const struct session * active_session;
 static GList * sessions;
-static char reboot;
+static bool reboot;
 
 static void set_up_window (void);
 static int update_cb (void * unused);
 
 static void run_setup (void) {
-   static const char * const args[] = {"/usr/sbin/j-login-setup", 0};
+   static const char * const args[] = {"/usr/sbin/j-login-setup", NULL};
    wait_for_exit (launch (args));
 }
 
 static void make_window (void) {
    window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-   gtk_window_set_keep_above ((GtkWindow *) window, 1);
+   gtk_window_set_keep_above ((GtkWindow *) window, true);
    fixed = gtk_fixed_new ();
-   frame = gtk_vbox_new (FALSE, 6);
+   frame = gtk_vbox_new (false, 6);
    GtkWidget * icon = gtk_image_new_from_file ("/usr/share/pixmaps/j-login.png");
-   gtk_box_pack_start ((GtkBox *) frame, icon, 0, 0, 0);
-   pages = gtk_hbox_new (FALSE, 6);
-   gtk_box_pack_start ((GtkBox *) frame, pages, 1, 0, 0);
+   gtk_box_pack_start ((GtkBox *) frame, icon, false, false, 0);
+   pages = gtk_hbox_new (false, 6);
+   gtk_box_pack_start ((GtkBox *) frame, pages, true, false, 0);
    gtk_fixed_put ((GtkFixed *) fixed, frame, 0, 0);
    gtk_container_add ((GtkContainer *) window, fixed);
 }
 
 static void make_log_in_page (void) {
-   log_in_page = gtk_vbox_new (FALSE, 6);
-   gtk_box_pack_start ((GtkBox *) pages, log_in_page, 1, 0, 0);
-   GtkWidget * prompt_box = gtk_hbox_new (FALSE, 6);
+   log_in_page = gtk_vbox_new (false, 6);
+   gtk_box_pack_start ((GtkBox *) pages, log_in_page, true, false, 0);
+   GtkWidget * prompt_box = gtk_hbox_new (false, 6);
    GtkWidget * prompt = gtk_label_new ("Name and password:");
-   gtk_box_pack_start ((GtkBox *) prompt_box, prompt, 0, 0, 0);
-   gtk_box_pack_start ((GtkBox *) log_in_page, prompt_box, 0, 0, 0);
+   gtk_box_pack_start ((GtkBox *) prompt_box, prompt, false, false, 0);
+   gtk_box_pack_start ((GtkBox *) log_in_page, prompt_box, false, false, 0);
    name_entry = gtk_entry_new ();
-   gtk_box_pack_start ((GtkBox *) log_in_page, name_entry, 0, 0, 0);
+   gtk_box_pack_start ((GtkBox *) log_in_page, name_entry, false, false, 0);
    password_entry = gtk_entry_new ();
-   gtk_entry_set_visibility ((GtkEntry *) password_entry, 0);
-   gtk_entry_set_activates_default ((GtkEntry *) password_entry, 1);
-   gtk_box_pack_start ((GtkBox *) log_in_page, password_entry, 0, 0, 0);
+   gtk_entry_set_visibility ((GtkEntry *) password_entry, false);
+   gtk_entry_set_activates_default ((GtkEntry *) password_entry, true);
+   gtk_box_pack_start ((GtkBox *) log_in_page, password_entry, false, false, 0);
    g_signal_connect_swapped (name_entry, "activate", (GCallback)
     gtk_widget_grab_focus, password_entry);
-   GtkWidget * log_in_button_box = gtk_hbox_new (FALSE, 6);
+   GtkWidget * log_in_button_box = gtk_hbox_new (false, 6);
    log_in_button = gtk_button_new_with_label ("Log in");
-   gtk_widget_set_can_focus (log_in_button, 0);
-   gtk_widget_set_can_default (log_in_button, 1);
-   gtk_box_pack_end ((GtkBox *) log_in_button_box, log_in_button, 0, 0, 0);
-   gtk_box_pack_start ((GtkBox *) log_in_page, log_in_button_box, 0, 0, 0);
+   gtk_widget_set_can_focus (log_in_button, false);
+   gtk_widget_set_can_default (log_in_button, true);
+   gtk_box_pack_end ((GtkBox *) log_in_button_box, log_in_button, false, false, 0);
+   gtk_box_pack_start ((GtkBox *) log_in_page, log_in_button_box, false, false, 0);
    gtk_widget_show_all (log_in_page);
 }
 
 static void make_fail_page (void) {
-   fail_page = gtk_vbox_new (FALSE, 6);
-   gtk_widget_set_no_show_all (fail_page, 1);
-   gtk_box_pack_start ((GtkBox *) pages, fail_page, 1, 0, 0);
-   GtkWidget * fail_message_box = gtk_hbox_new (FALSE, 6);
+   fail_page = gtk_vbox_new (false, 6);
+   gtk_widget_set_no_show_all (fail_page, true);
+   gtk_box_pack_start ((GtkBox *) pages, fail_page, true, false, 0);
+   GtkWidget * fail_message_box = gtk_hbox_new (false, 6);
    GtkWidget * fail_message = gtk_label_new ("Authentication failed.");
-   gtk_box_pack_start ((GtkBox *) fail_message_box, fail_message, 0, 0, 0);
+   gtk_box_pack_start ((GtkBox *) fail_message_box, fail_message, false, false, 0);
    gtk_widget_show_all (fail_message_box);
-   gtk_box_pack_start ((GtkBox *) fail_page, fail_message_box, 0, 0, 0);
-   GtkWidget * ok_button_box = gtk_hbox_new (FALSE, 6);
+   gtk_box_pack_start ((GtkBox *) fail_page, fail_message_box, false, false, 0);
+   GtkWidget * ok_button_box = gtk_hbox_new (false, 6);
    ok_button = gtk_button_new_with_label ("O.K.");
-   gtk_widget_set_can_default (ok_button, 1);
-   gtk_box_pack_end ((GtkBox *) ok_button_box, ok_button, 0, 0, 0);
+   gtk_widget_set_can_default (ok_button, true);
+   gtk_box_pack_end ((GtkBox *) ok_button_box, ok_button, false, false, 0);
    gtk_widget_show_all (ok_button_box);
-   gtk_box_pack_start ((GtkBox *) fail_page, ok_button_box, 0, 0, 0);
+   gtk_box_pack_start ((GtkBox *) fail_page, ok_button_box, false, false, 0);
 }
 
 static void make_tool_box (void) {
-   GtkWidget * tool_box = gtk_hbox_new (FALSE, 6);
-   gtk_box_pack_start ((GtkBox *) frame, tool_box, 0, 0, 0);
+   GtkWidget * tool_box = gtk_hbox_new (false, 6);
+   gtk_box_pack_start ((GtkBox *) frame, tool_box, false, false, 0);
    status_bar = gtk_label_new ("");
-   gtk_box_pack_start ((GtkBox *) tool_box, status_bar, 0, 0, 0);
+   gtk_box_pack_start ((GtkBox *) tool_box, status_bar, false, false, 0);
    reboot_button = gtk_button_new_with_mnemonic ("_Reboot");
-   gtk_box_pack_end ((GtkBox *) tool_box, reboot_button, 0, 0, 0);
+   gtk_box_pack_end ((GtkBox *) tool_box, reboot_button, false, false, 0);
    shut_down_button = gtk_button_new_with_mnemonic ("Sh_ut down");
-   gtk_box_pack_end ((GtkBox *) tool_box, shut_down_button, 0, 0, 0);
+   gtk_box_pack_end ((GtkBox *) tool_box, shut_down_button, false, false, 0);
    sleep_button = gtk_button_new_with_mnemonic ("_Sleep");
-   gtk_box_pack_end ((GtkBox *) tool_box, sleep_button, 0, 0, 0);
-   gtk_widget_set_can_focus (reboot_button, 0);
-   gtk_widget_set_can_focus (shut_down_button, 0);
-   gtk_widget_set_can_focus (sleep_button, 0);
+   gtk_box_pack_end ((GtkBox *) tool_box, sleep_button, false, false, 0);
+   gtk_widget_set_can_focus (reboot_button, false);
+   gtk_widget_set_can_focus (shut_down_button, false);
+   gtk_widget_set_can_focus (sleep_button, false);
 }
 
 static void reset (void) {
@@ -157,7 +157,7 @@ static void do_layout (void) {
    gtk_widget_set_size_request (frame, rect.width - 12, rect.height - 12);
 }
 
-static char show_window (void) {
+static bool show_window (void) {
    do_layout ();
    reset ();
    gtk_widget_show_all (window);
@@ -165,10 +165,10 @@ static char show_window (void) {
    GdkWindow * gdkw = gtk_widget_get_window (window);
    if (! block_x (GDK_WINDOW_XDISPLAY (gdkw), GDK_WINDOW_XID (gdkw))) {
       gtk_widget_hide (window);
-      return 0;
+      return false;
    }
    popup_x (first_console);
-   return 1;
+   return true;
 }
 
 static void hide_window (void) {
@@ -179,7 +179,7 @@ static void hide_window (void) {
 
 static void realize_cb (void) {
    GdkWindow * gdkw = gtk_widget_get_window (window);
-   gdk_window_set_override_redirect (gdkw, 1);
+   gdk_window_set_override_redirect (gdkw, true);
 }
 
 static void screen_changed (void) {
@@ -189,7 +189,7 @@ static void screen_changed (void) {
 
 static int launch_session (const char * user, const char * pass,
  struct console * console) {
-   static const char * const args[] = {"/usr/bin/j-session", 0};
+   static const char * const args[] = {"/usr/bin/j-session", NULL};
    return launch_set_user (user, pass, console->vt, console->display, args);
 }
 
@@ -210,17 +210,17 @@ static int find_session_cb (const struct session * session, const char * user) {
    return strcmp (session->user, user);
 }
 
-static char try_activate_session (const char * user) {
+static bool try_activate_session (const char * user) {
    GList * node = g_list_find_custom (sessions, user, (GCompareFunc)
     find_session_cb);
    if (! node)
-      return 0;
+      return false;
    const struct session * session = node->data;
    if (session->console == first_console)
       hide_window ();
    popup_x (session->console);
    active_session = session;
-   return 1;
+   return true;
 }
 
 static void end_session (struct session * session) {
@@ -228,7 +228,7 @@ static void end_session (struct session * session) {
       close_x (session->console);
    remove_session (session);
    if (session == active_session) {
-      active_session = 0;
+      active_session = NULL;
       show_window ();
    }
 }
@@ -244,28 +244,28 @@ static void print_session_cb (const struct session * session, char * status) {
 }
 
 static int update_cb (void * unused) {
-   g_list_foreach (sessions, (GFunc) check_session_cb, 0);
+   g_list_foreach (sessions, (GFunc) check_session_cb, NULL);
    char status[256];
    snprintf (status, sizeof status, "Logged in:");
    g_list_foreach (sessions, (GFunc) print_session_cb, status);
    gtk_label_set_text ((GtkLabel *) status_bar, status);
    if (sessions) {
-      gtk_widget_set_sensitive (shut_down_button, 0);
-      gtk_widget_set_sensitive (reboot_button, 0);
+      gtk_widget_set_sensitive (shut_down_button, false);
+      gtk_widget_set_sensitive (reboot_button, false);
    } else {
-      gtk_widget_set_sensitive (shut_down_button, 1);
-      gtk_widget_set_sensitive (reboot_button, 1);
+      gtk_widget_set_sensitive (shut_down_button, true);
+      gtk_widget_set_sensitive (reboot_button, true);
    }
-   return 0;
+   return G_SOURCE_REMOVE;
 }
 
 static int popup_cb (void * unused) {
    show_window ();
-   return 0;
+   return G_SOURCE_REMOVE;
 }
 
 static void do_sleep (void) {
-   static const char * const args[] = {"/usr/sbin/j-login-sleep", 0};
+   static const char * const args[] = {"/usr/sbin/j-login-sleep", NULL};
    while (gtk_events_pending ())
       gtk_main_iteration ();
    wait_for_exit (launch (args));
@@ -274,7 +274,7 @@ static void do_sleep (void) {
 static int sleep_cb (void * unused) {
    if (show_window ())
       do_sleep ();
-   return 0;
+   return G_SOURCE_REMOVE;
 }
 
 static void * signal_thread (void * unused) {
@@ -286,11 +286,11 @@ static void * signal_thread (void * unused) {
    int signal;
    while (! sigwait (& signals, & signal)) {
       if (signal == SIGCHLD)
-         g_timeout_add (0, update_cb, 0);
+         g_timeout_add (0, update_cb, NULL);
       else if (signal == SIGUSR1)
-         g_timeout_add (0, popup_cb, 0);
+         g_timeout_add (0, popup_cb, NULL);
       else if (signal == SIGUSR2)
-         g_timeout_add (0, sleep_cb, 0);
+         g_timeout_add (0, sleep_cb, NULL);
    }
    fail ("sigwait");
    return 0;
@@ -302,10 +302,10 @@ static void start_signal_thread (void) {
    sigaddset (& signals, SIGCHLD);
    sigaddset (& signals, SIGUSR1);
    sigaddset (& signals, SIGUSR2);
-   if (sigprocmask (SIG_SETMASK, & signals, 0) < 0)
+   if (sigprocmask (SIG_SETMASK, & signals, NULL) < 0)
       fail ("sigprocmask");
    pthread_t thread;
-   if (pthread_create (& thread, 0, signal_thread, 0) < 0)
+   if (pthread_create (& thread, NULL, signal_thread, NULL) < 0)
       fail ("pthread_create");
 }
 
@@ -316,7 +316,7 @@ static void log_in (void) {
    if (strcmp (name, "root") && check_password (name, password)) {
       if (! try_activate_session (name)) {
          start_session (name, password);
-         update_cb (0);
+         update_cb (NULL);
       }
    } else {
       gtk_widget_hide (log_in_page);
@@ -329,20 +329,20 @@ static void log_in (void) {
 }
 
 static void queue_reboot (void) {
-   reboot = 1;
+   reboot = true;
    gtk_main_quit ();
 }
 
 static void set_up_window (void) {
-   g_signal_connect (window, "realize", (GCallback) realize_cb, 0);
+   g_signal_connect (window, "realize", (GCallback) realize_cb, NULL);
    GdkScreen * screen = gtk_widget_get_screen (window);
-   g_signal_connect (screen, "monitors-changed", (GCallback) screen_changed, 0);
-   g_signal_connect (screen, "size-changed", (GCallback) screen_changed, 0);
-   g_signal_connect (log_in_button, "clicked", (GCallback) log_in, 0);
-   g_signal_connect (ok_button, "clicked", (GCallback) reset, 0);
-   g_signal_connect (sleep_button, "clicked", (GCallback) do_sleep, 0);
-   g_signal_connect (shut_down_button, "clicked", (GCallback) gtk_main_quit, 0);
-   g_signal_connect (reboot_button, "clicked", (GCallback) queue_reboot, 0);
+   g_signal_connect (screen, "monitors-changed", (GCallback) screen_changed, NULL);
+   g_signal_connect (screen, "size-changed", (GCallback) screen_changed, NULL);
+   g_signal_connect (log_in_button, "clicked", (GCallback) log_in, NULL);
+   g_signal_connect (ok_button, "clicked", (GCallback) reset, NULL);
+   g_signal_connect (sleep_button, "clicked", (GCallback) do_sleep, NULL);
+   g_signal_connect (shut_down_button, "clicked", (GCallback) gtk_main_quit, NULL);
+   g_signal_connect (reboot_button, "clicked", (GCallback) queue_reboot, NULL);
    gtk_widget_grab_focus (name_entry);
    gtk_widget_grab_default (log_in_button);
 }
@@ -353,13 +353,13 @@ static void set_up_interface (void) {
    make_fail_page ();
    make_tool_box ();
    set_up_window ();
-   update_cb (0);
+   update_cb (NULL);
 }
 
 static void poweroff ()
 {
-   const char * const poweroff_args[] = {"poweroff", 0};
-   const char * const reboot_args[] = {"reboot", 0};
+   const char * const poweroff_args[] = {"poweroff", NULL};
+   const char * const reboot_args[] = {"reboot", NULL};
    wait_for_exit (launch (reboot ? reboot_args : poweroff_args));
 }
 
@@ -369,7 +369,7 @@ int main (int argc, char * * argv) {
    int old_vt = get_vt ();
    first_console = start_x ();
    set_display (first_console->display);
-   gtk_init (0, 0);
+   gtk_init (NULL, NULL);
    run_setup ();
    start_signal_thread ();
    set_up_interface ();

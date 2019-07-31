@@ -20,6 +20,7 @@
 #ifndef JLOGIN_SCREEN_H
 #define JLOGIN_SCREEN_H
 
+#include <stdbool.h>
 #include <X11/Xlib.h>
 
 struct console {
@@ -37,7 +38,7 @@ struct console * start_x (void);
 void popup_x (const struct console * console);
 void close_x (struct console * console);
 void set_display (int display);
-char block_x (Display * handle, Window window);
+bool block_x (Display * handle, Window window);
 void unblock_x (Display * handle);
 
 #endif

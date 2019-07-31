@@ -32,7 +32,7 @@
 #define MAX_VT 16
 
 static int vt_handle;
-static char vt_used[MAX_VT];
+static bool vt_used[MAX_VT];
 
 void init_vt (void) {
    if ((vt_handle = open ("/dev/console", O_RDONLY)) < 0)
@@ -56,7 +56,7 @@ int get_vt (void) {
 int get_open_vt (void) {
    for (int vt = FIRST_VT; vt < FIRST_VT + MAX_VT; vt ++) {
       if (! vt_used[vt - FIRST_VT]) {
-         vt_used[vt - FIRST_VT] = 1;
+         vt_used[vt - FIRST_VT] = true;
          return vt;
       }
    }
@@ -124,23 +124,23 @@ void set_display (int display) {
    my_setenv ("DISPLAY", name);
 }
 
-char block_x (Display * handle, Window window) {
-   char mouse = 0, keyboard = 0;
+bool block_x (Display * handle, Window window) {
+   bool mouse = false, keyboard = false;
    for (int count = 0; count < 50; count ++)
    {
       if (! keyboard)
-         keyboard = (XGrabKeyboard (handle, window, True, GrabModeAsync,
+         keyboard = (XGrabKeyboard (handle, window, true, GrabModeAsync,
           GrabModeAsync, CurrentTime) == GrabSuccess);
       if (! mouse)
-         mouse = (XGrabPointer (handle, window, True, 0, GrabModeAsync,
+         mouse = (XGrabPointer (handle, window, true, 0, GrabModeAsync,
           GrabModeAsync, window, None, CurrentTime) == GrabSuccess);
       if (keyboard && mouse)
-         return 1;
+         return true;
       struct timespec delay = {.tv_sec = 0, .tv_nsec = 20000000};
       nanosleep (& delay, 0);
    }
    unblock_x (handle);
-   return 0;
+   return false;
 }
 
 void unblock_x (Display * handle) {
