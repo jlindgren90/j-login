@@ -100,12 +100,11 @@ static void wait_x (int display) {
 }
 
 console_t * start_x (void) {
-   console_t * console = my_malloc (sizeof (console_t));
-   console->vt = get_open_vt ();
-   set_vt (console->vt);
-   console->display = get_open_display ();
-   console->process = launch_x (console->vt, console->display);
-   wait_x (console->display);
+   int vt = get_open_vt ();
+   set_vt (vt);
+   int display = get_open_display ();
+   NEW (console_t, console, vt, display, launch_x (vt, display));
+   wait_x (display);
    return console;
 }
 

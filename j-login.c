@@ -131,12 +131,9 @@ static void reset (void) {
 }
 
 static session_t * add_session (const char * user, console_t * console, pid_t process) {
-   session_t * new = my_malloc (sizeof (session_t));
-   new->user = my_strdup (user);
-   new->console = console;
-   new->process = process;
-   sessions = g_list_append (sessions, new);
-   return new;
+   NEW (session_t, session, my_strdup (user), console, process);
+   sessions = g_list_append (sessions, session);
+   return session;
 }
 
 static void remove_session (session_t * session) {

@@ -25,9 +25,13 @@
 
 #define NAME "J Login"
 
-#define SPRINTF(n,...) \
+#define NEW(t, n, ...) \
+ t * n = my_malloc (sizeof (t)); \
+ * n = (t) {__VA_ARGS__}
+
+#define SPRINTF(n, ...) \
  char n[snprintf (NULL, 0, __VA_ARGS__) + 1]; \
- snprintf (n, sizeof n, __VA_ARGS__);
+ snprintf (n, sizeof n, __VA_ARGS__)
 
 void error (const char * message);
 void fail (const char * func);

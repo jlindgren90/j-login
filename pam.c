@@ -29,11 +29,8 @@ static int callback (int count, const struct pam_message * * msgs,
  struct pam_response * * resps, void * pass) {
    if (count != 1 || (* msgs)->msg_style != PAM_PROMPT_ECHO_OFF)
       return PAM_CONV_ERR;
-   * resps = my_malloc (sizeof (struct pam_response));
-   * * resps = (struct pam_response) {
-      .resp = my_strdup (pass),
-      .resp_retcode = 0
-   };
+   NEW (struct pam_response, resp, my_strdup (pass), 0);
+   * resps = resp;
    return PAM_SUCCESS;
 }
 
@@ -53,10 +50,7 @@ static void import_pam_env (pam_handle_t * handle) {
 }
 
 void * open_pam (const char * user, const char * pass, int vt, int display) {
-   struct pam_conv conv = {
-      .conv = callback,
-      .appdata_ptr = (void *) pass
-   };
+   struct pam_conv conv = {callback, (void *) pass};
    pam_handle_t * handle;
    if (pam_start ("login", user, & conv, & handle) != PAM_SUCCESS)
       fail ("pam_start");
