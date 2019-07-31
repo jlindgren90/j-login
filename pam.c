@@ -57,7 +57,7 @@ void * open_pam (const char * user, const char * pass, int vt, int display) {
    };
    pam_handle_t * handle;
    if (pam_start ("login", user, & conv, & handle) != PAM_SUCCESS)
-      return 0;
+      fail ("pam_start");
    if (pam_authenticate (handle, 0) != PAM_SUCCESS)
       fail ("pam_authenticate");
    SPRINTF (vt_name, "/dev/tty%d", vt);
@@ -74,8 +74,6 @@ void * open_pam (const char * user, const char * pass, int vt, int display) {
 
 void close_pam (void * handle)
 {
-   if (handle) {
-      pam_close_session (handle, 0);
-      pam_end (handle, PAM_SUCCESS);
-   }
+   pam_close_session (handle, 0);
+   pam_end (handle, PAM_SUCCESS);
 }
