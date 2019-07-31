@@ -33,8 +33,6 @@ int get_vt (void);
 int get_open_vt (void);
 void release_vt (int vt);
 void set_vt (int vt);
-void lock_vt (void);
-void unlock_vt (void);
 
 struct console * start_x (void);
 void popup_x (const struct console * console);

@@ -167,9 +167,7 @@ static char show_window (void) {
       gtk_widget_hide (window);
       return 0;
    }
-   unlock_vt ();
    popup_x (first_console);
-   lock_vt ();
    return 1;
 }
 
@@ -197,15 +195,11 @@ static int launch_session (const char * user, const char * pass,
 
 static void start_session (const char * user, const char * pass) {
    struct console * console;
-   if (sessions) {
-      unlock_vt ();
+   if (sessions)
       console = start_x ();
-      lock_vt ();
-   } else {
+   else {
       hide_window ();
-      unlock_vt ();
       popup_x (first_console);
-      lock_vt ();
       console = first_console;
    }
    int process = launch_session (user, pass, console);
@@ -224,9 +218,7 @@ static char try_activate_session (const char * user) {
    const struct session * session = node->data;
    if (session->console == first_console)
       hide_window ();
-   unlock_vt ();
    popup_x (session->console);
-   lock_vt ();
    active_session = session;
    return 1;
 }
@@ -276,9 +268,7 @@ static void do_sleep (void) {
    static const char * const args[] = {"/usr/sbin/j-login-sleep", 0};
    while (gtk_events_pending ())
       gtk_main_iteration ();
-   unlock_vt ();
    wait_for_exit (launch (args));
-   lock_vt ();
 }
 
 static int sleep_cb (void * unused) {
@@ -378,7 +368,6 @@ int main (int argc, char * * argv) {
    init_vt ();
    int old_vt = get_vt ();
    first_console = start_x ();
-   lock_vt ();
    set_display (first_console->display);
    run_setup ();
    gtk_init (0, 0);
@@ -388,7 +377,6 @@ int main (int argc, char * * argv) {
    gtk_main ();
    gtk_widget_destroy (window);
    close_x (first_console);
-   unlock_vt ();
    set_vt (old_vt);
    close_vt ();
    poweroff ();

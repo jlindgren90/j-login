@@ -76,20 +76,6 @@ void set_vt (int vt) {
       fail ("VT_WAITACTIVE");
 }
 
-void lock_vt (void) {
-#if 0
-   if (ioctl (vt_handle, VT_LOCKSWITCH, 0) < 0)
-      fail ("VT_LOCKSWITCH");
-#endif
-}
-
-void unlock_vt (void) {
-#if 0
-   if (ioctl (vt_handle, VT_UNLOCKSWITCH, 0) < 0)
-      fail ("VT_UNLOCKSWITCH");
-#endif
-}
-
 static int get_open_display (void) {
    for (int display = 0; display < 100; display ++) {
       SPRINTF (path, "/tmp/.X%d-lock", display);
