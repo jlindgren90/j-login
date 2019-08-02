@@ -56,11 +56,11 @@ static void update_ui (void) {
 }
 
 static bool show_ui (void) {
-   if (ui)
-      return true;
-   ui = ui_create (status, ! sessions);
-   if (! ui)
-      return false;
+   if (! ui) {
+      ui = ui_create (status, ! sessions);
+      if (! ui)
+         return false;
+   }
    popup_x (first_console);
    return true;
 }
