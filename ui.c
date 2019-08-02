@@ -18,11 +18,18 @@
  */
 
 #include <gdk/gdkx.h>
+#include <gtk/gtk.h>
 #include <X11/Xlib.h>
 
 #include "actions.h"
 #include "ui.h"
 #include "utils.h"
+
+struct ui_s {
+   GtkWidget * window, * fixed, * frame, * pages, * log_in_page, * fail_page;
+   GtkWidget * name_entry, * password_entry, * log_in_button, * back_button;
+   GtkWidget * status_bar, * sleep_button, * shut_down_button, * reboot_button;
+};
 
 /* override GTK symbol so that GTK never releases our grab */
 GdkGrabStatus gdk_pointer_grab (GdkWindow * window, gboolean owner_events,
@@ -207,42 +214,33 @@ static void set_up_window (ui_t * ui) {
    gtk_widget_grab_default (ui->log_in_button);
 }
 
-void ui_create (ui_t * ui) {
+ui_t * ui_create (const char * status, bool can_quit) {
+   ui_t * ui = my_malloc (sizeof (ui_t));
    make_window (ui);
    make_log_in_page (ui);
    make_fail_page (ui);
    make_tool_box (ui);
    set_up_window (ui);
-}
-
-void ui_destroy (ui_t * ui) {
-   gtk_widget_destroy (ui->window);
-}
-
-bool ui_show (ui_t * ui) {
    do_layout (ui);
-   reset (ui);
+   ui_update (ui, status, can_quit);
    gtk_widget_show_all (ui->window);
    gtk_window_present ((GtkWindow *) ui->window);
    GdkWindow * gdkw = gtk_widget_get_window (ui->window);
-   if (! block_x (GDK_WINDOW_XDISPLAY (gdkw), GDK_WINDOW_XID (gdkw))) {
-      gtk_widget_hide (ui->window);
-      return false;
-   }
-   return true;
+   if (block_x (GDK_WINDOW_XDISPLAY (gdkw), GDK_WINDOW_XID (gdkw)))
+      return ui;
+   ui_destroy (ui);
+   return NULL;
 }
 
-void ui_hide (ui_t * ui) {
-   GdkWindow * gdkw = gtk_widget_get_window (ui->window);
-   unblock_x (GDK_WINDOW_XDISPLAY (gdkw));
-   gtk_widget_hide (ui->window);
-}
-
-void ui_set_status (ui_t * ui, const char * status) {
+void ui_update (ui_t * ui, const char * status, bool can_quit) {
    gtk_label_set_text ((GtkLabel *) ui->status_bar, status);
-}
-
-void ui_set_can_quit (ui_t * ui, bool can_quit) {
    gtk_widget_set_sensitive (ui->shut_down_button, can_quit);
    gtk_widget_set_sensitive (ui->reboot_button, can_quit);
+}
+
+void ui_destroy (ui_t * ui) {
+   GdkWindow * gdkw = gtk_widget_get_window (ui->window);
+   unblock_x (GDK_WINDOW_XDISPLAY (gdkw));
+   gtk_widget_destroy (ui->window);
+   free (ui);
 }

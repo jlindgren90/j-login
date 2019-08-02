@@ -21,21 +21,11 @@
 #define JLOGIN_UI_H
 
 #include <stdbool.h>
-#include <gtk/gtk.h>
 
-typedef struct {
-   GtkWidget * window, * fixed, * frame, * pages, * log_in_page, * fail_page;
-   GtkWidget * name_entry, * password_entry, * log_in_button, * back_button;
-   GtkWidget * status_bar, * sleep_button, * shut_down_button, * reboot_button;
-} ui_t;
+typedef struct ui_s ui_t;
 
-void ui_create (ui_t * ui);
+ui_t * ui_create (const char * status, bool can_quit);
+void ui_update (ui_t * ui, const char * status, bool can_quit);
 void ui_destroy (ui_t * ui);
-
-bool ui_show (ui_t * ui);
-void ui_hide (ui_t * ui);
-
-void ui_set_status (ui_t * ui, const char * status);
-void ui_set_can_quit (ui_t * ui, bool can_quit);
 
 #endif

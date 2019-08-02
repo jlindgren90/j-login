@@ -23,6 +23,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <gtk/gtk.h>
+
 #include "actions.h"
 #include "screen.h"
 #include "ui.h"
@@ -37,8 +39,9 @@ typedef struct {
 static console_t * first_console;
 static const session_t * active_session;
 static GList * sessions;
+static ui_t * ui;
+static char status[256];
 static bool reboot;
-static ui_t ui;
 
 static int update_cb (void * unused);
 
@@ -47,28 +50,26 @@ static void run_setup (void) {
    wait_for_exit (launch (args));
 }
 
-static session_t * add_session (const char * user, console_t * console, pid_t process) {
-   NEW (session_t, session, my_strdup (user), console, process);
-   sessions = g_list_append (sessions, session);
-   return session;
+static void update_ui (void) {
+   if (ui)
+      ui_update (ui, status, ! sessions);
 }
 
-static void remove_session (session_t * session) {
-   sessions = g_list_remove (sessions, session);
-   free (session->user);
-   free (session);
-}
-
-static bool show_window (void) {
-   if (! ui_show (& ui))
+static bool show_ui (void) {
+   if (ui)
+      return true;
+   ui = ui_create (status, ! sessions);
+   if (! ui)
       return false;
    popup_x (first_console);
    return true;
 }
 
-static pid_t launch_session (const char * user, const char * pass, console_t * console) {
-   static const char * const args[] = {"/usr/bin/j-session", NULL};
-   return launch_set_user (user, pass, console->vt, console->display, args);
+static void hide_ui (void) {
+   if (! ui)
+      return;
+   ui_destroy (ui);
+   ui = NULL;
 }
 
 static void start_session (const char * user, const char * pass) {
@@ -76,65 +77,64 @@ static void start_session (const char * user, const char * pass) {
    if (sessions)
       console = start_x ();
    else {
-      ui_hide (& ui);
+      hide_ui ();
       popup_x (first_console);
       console = first_console;
    }
-   pid_t process = launch_session (user, pass, console);
-   active_session = add_session (user, console, process);
-}
-
-static int find_session_cb (const session_t * session, const char * user) {
-   return strcmp (session->user, user);
+   static const char * const args[] = {"/usr/bin/j-session", NULL};
+   pid_t process = launch_set_user (user, pass, console->vt, console->display, args);
+   NEW (session_t, session, my_strdup (user), console, process);
+   sessions = g_list_append (sessions, session);
+   active_session = session;
 }
 
 static bool try_activate_session (const char * user) {
-   GList * node = g_list_find_custom (sessions, user, (GCompareFunc) find_session_cb);
-   if (! node)
-      return false;
-   const session_t * session = node->data;
-   if (session->console == first_console)
-      ui_hide (& ui);
-   popup_x (session->console);
-   active_session = session;
-   return true;
+   for(GList * node = sessions; node; node = node->next) {
+      const session_t * session = node->data;
+      if (strcmp (session->user, user))
+         continue;
+      if (session->console == first_console)
+         hide_ui ();
+      popup_x (session->console);
+      active_session = session;
+      return true;
+   }
+   return false;
 }
 
 static void end_session (session_t * session) {
+   if (session == active_session)
+      active_session = NULL;
    if (session->console != first_console)
       close_x (session->console);
-   remove_session (session);
-   if (session == active_session) {
-      active_session = NULL;
-      show_window ();
-   }
-}
-
-static void check_session_cb (session_t * session, void * unused) {
-   (void) unused;
-   if (exited (session->process))
-      end_session (session);
-}
-
-static void print_session_cb (const session_t * session, char * status) {
-   int length = strlen (status);
-   snprintf (status + length, 256 - length, " %s", session->user);
+   sessions = g_list_remove (sessions, session);
+   free (session->user);
+   free (session);
 }
 
 static int update_cb (void * unused) {
    (void) unused;
-   g_list_foreach (sessions, (GFunc) check_session_cb, NULL);
-   char status[256];
    snprintf (status, sizeof status, "Logged in:");
-   g_list_foreach (sessions, (GFunc) print_session_cb, status);
-   ui_set_status (& ui, status);
-   ui_set_can_quit (& ui, ! sessions);
+   for (GList * node = sessions; node;) {
+      GList * next = node->next;
+      session_t * session = node->data;
+      if (exited (session->process))
+         end_session (session);
+      else {
+         int length = strlen (status);
+         snprintf (status + length, sizeof status - length, " %s", session->user);
+      }
+      node = next;
+   }
+   if (! active_session)
+      show_ui ();
+   update_ui ();
    return G_SOURCE_REMOVE;
 }
 
 static int popup_cb (void * unused) {
    (void) unused;
-   show_window ();
+   show_ui ();
    return G_SOURCE_REMOVE;
 }
 
@@ -147,7 +147,7 @@ void do_sleep (void) {
 
 static int sleep_cb (void * unused) {
    (void) unused;
-   if (show_window ())
+   if (show_ui ())
       do_sleep ();
    return G_SOURCE_REMOVE;
 }
@@ -220,11 +220,9 @@ int main (void) {
    gtk_init (NULL, NULL);
    run_setup ();
    start_signal_thread ();
-   ui_create (& ui);
    update_cb (NULL);
-   show_window ();
    gtk_main ();
-   ui_destroy (& ui);
+   hide_ui ();
    close_x (first_console);
    set_vt (old_vt);
    close_vt ();
