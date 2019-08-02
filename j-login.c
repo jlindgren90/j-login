@@ -43,8 +43,6 @@ static ui_t * ui;
 static char status[256];
 static bool reboot;
 
-static int update_cb (void * unused);
-
 static void run_setup (void) {
    static const char * const args[] = {"/usr/sbin/j-login-setup", NULL};
    wait_for_exit (launch (args));
