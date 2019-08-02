@@ -122,27 +122,3 @@ void set_display (int display) {
    SPRINTF (name, ":%d", display);
    my_setenv ("DISPLAY", name);
 }
-
-bool block_x (Display * handle, Window window) {
-   bool mouse = false, keyboard = false;
-   for (int count = 0; count < 50; count ++)
-   {
-      if (! keyboard)
-         keyboard = (XGrabKeyboard (handle, window, true, GrabModeAsync,
-          GrabModeAsync, CurrentTime) == GrabSuccess);
-      if (! mouse)
-         mouse = (XGrabPointer (handle, window, true, 0, GrabModeAsync,
-          GrabModeAsync, window, None, CurrentTime) == GrabSuccess);
-      if (keyboard && mouse)
-         return true;
-      struct timespec delay = {.tv_sec = 0, .tv_nsec = 20000000};
-      nanosleep (& delay, 0);
-   }
-   unblock_x (handle);
-   return false;
-}
-
-void unblock_x (Display * handle) {
-   XUngrabPointer (handle, CurrentTime);
-   XUngrabKeyboard (handle, CurrentTime);
-}

@@ -1,6 +1,6 @@
 /*
- * J-Login - screen.h
- * Copyright 2010-2015 John Lindgren
+ * J-Login - actions.h
+ * Copyright 2019 John Lindgren
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -17,27 +17,14 @@
  * the use of this software.
  */
 
-#ifndef JLOGIN_SCREEN_H
-#define JLOGIN_SCREEN_H
+#ifndef JLOGIN_ACTIONS_H
+#define JLOGIN_ACTIONS_H
 
 #include <stdbool.h>
-#include <sys/types.h>
 
-typedef struct {
-   int vt, display;
-   pid_t process;
-} console_t;
-
-void init_vt (void);
-void close_vt (void);
-int get_vt (void);
-int get_open_vt (void);
-void release_vt (int vt);
-void set_vt (int vt);
-
-console_t * start_x (void);
-void popup_x (const console_t * console);
-void close_x (console_t * console);
-void set_display (int display);
+bool log_in (const char * name, const char * password);
+void do_sleep (void);
+void queue_shutdown (void);
+void queue_reboot (void);
 
 #endif

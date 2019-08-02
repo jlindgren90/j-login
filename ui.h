@@ -1,6 +1,6 @@
 /*
- * J-Login - screen.h
- * Copyright 2010-2015 John Lindgren
+ * J-Login - ui.h
+ * Copyright 2019 John Lindgren
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -17,27 +17,25 @@
  * the use of this software.
  */
 
-#ifndef JLOGIN_SCREEN_H
-#define JLOGIN_SCREEN_H
+#ifndef JLOGIN_UI_H
+#define JLOGIN_UI_H
 
 #include <stdbool.h>
-#include <sys/types.h>
+#include <gtk/gtk.h>
 
 typedef struct {
-   int vt, display;
-   pid_t process;
-} console_t;
+   GtkWidget * window, * fixed, * frame, * pages, * log_in_page, * fail_page;
+   GtkWidget * name_entry, * password_entry, * log_in_button, * back_button;
+   GtkWidget * status_bar, * sleep_button, * shut_down_button, * reboot_button;
+} ui_t;
 
-void init_vt (void);
-void close_vt (void);
-int get_vt (void);
-int get_open_vt (void);
-void release_vt (int vt);
-void set_vt (int vt);
+void ui_create (ui_t * ui);
+void ui_destroy (ui_t * ui);
 
-console_t * start_x (void);
-void popup_x (const console_t * console);
-void close_x (console_t * console);
-void set_display (int display);
+bool ui_show (ui_t * ui);
+void ui_hide (ui_t * ui);
+
+void ui_set_status (ui_t * ui, const char * status);
+void ui_set_can_quit (ui_t * ui, bool can_quit);
 
 #endif
