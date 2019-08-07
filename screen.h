@@ -29,11 +29,8 @@ typedef struct {
 } xhandle_t;
 
 void init_vt (void);
-void close_vt (void);
-int get_vt (void);
 void set_vt (int vt);
 
 xhandle_t * start_x (void);
-void close_x (xhandle_t * xhandle);
 
 #endif

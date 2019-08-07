@@ -41,7 +41,6 @@ typedef struct {
 static GList * consoles;
 static int user_count;
 static char status[256];
-static bool reboot;
 
 static void run_setup (void) {
    static const char * const args[] = {"/usr/sbin/j-login-setup", NULL};
@@ -113,19 +112,6 @@ static bool lock_consoles (void) {
 
 static void activate_console (console_t * console) {
    set_vt (console->xhandle->vt);
-}
-
-static void close_consoles (void) {
-   for (GList * node = g_list_last (consoles); node;) {
-      GList * prev = node->prev;
-      console_t * console = node->data;
-      hide_ui (console);
-      gdk_display_close (console->display);
-      close_x (console->xhandle);
-      free (console);
-      consoles = g_list_remove (consoles, console);
-      node = prev;
-   }
 }
 
 static void start_session (const char * user, const char * pass) {
@@ -246,34 +232,23 @@ bool log_in (const char * name, const char * password) {
 }
 
 void queue_reboot (void) {
-   reboot = true;
-   gtk_main_quit ();
+   const char * const args[] = {"reboot", NULL};
+   wait_for_exit (launch (args));
 }
 
 void queue_shutdown (void) {
-   gtk_main_quit ();
-}
-
-static void poweroff ()
-{
-   const char * const poweroff_args[] = {"poweroff", NULL};
-   const char * const reboot_args[] = {"reboot", NULL};
-   wait_for_exit (launch (reboot ? reboot_args : poweroff_args));
+   const char * const args[] = {"poweroff", NULL};
+   wait_for_exit (launch (args));
 }
 
 int main (void) {
    set_user ("root");
    init_vt ();
-   int old_vt = get_vt ();
    open_console ();
    run_setup ();
    start_signal_thread ();
    update_cb (NULL);
    show_ui (consoles->data);
    gtk_main ();
-   close_consoles ();
-   set_vt (old_vt);
-   close_vt ();
-   poweroff ();
    return 0;
 }

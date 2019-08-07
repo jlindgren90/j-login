@@ -41,18 +41,6 @@ void init_vt (void) {
       fail2 ("FD_CLOEXEC", "/dev/console");
 }
 
-void close_vt (void) {
-   if (close (vt_handle) < 0)
-      fail2 ("close", "/dev/console");
-}
-
-int get_vt (void) {
-   struct vt_stat s;
-   if (ioctl (vt_handle, VT_GETSTATE, & s) < 0)
-      fail ("VT_GETSTATE");
-   return s.v_active;
-}
-
 static int get_open_vt (void) {
    for (int vt = FIRST_VT; vt < FIRST_VT + MAX_VT; vt ++) {
       if (! vt_used[vt - FIRST_VT]) {
@@ -62,11 +50,6 @@ static int get_open_vt (void) {
    }
    error ("too many open VTs");
    return -1;
-}
-
-static void release_vt (int vt) {
-   if (vt >= FIRST_VT && vt < FIRST_VT + MAX_VT)
-      vt_used[vt - FIRST_VT] = 0;
 }
 
 void set_vt (int vt) {
@@ -105,10 +88,4 @@ xhandle_t * start_x (void) {
    NEW (xhandle_t, xhandle, vt, display, launch_x (vt, display));
    wait_x (display);
    return xhandle;
-}
-
-void close_x (xhandle_t * xhandle) {
-   my_kill (xhandle->process);
-   release_vt (xhandle->vt);
-   free (xhandle);
 }
