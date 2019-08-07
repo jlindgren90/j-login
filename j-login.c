@@ -43,7 +43,7 @@ static int user_count;
 static char status[256];
 
 static void run_setup (void) {
-   static const char * const args[] = {"/usr/sbin/j-login-setup", NULL};
+   static const char * const args[] = {"/usr/bin/j-login-setup", NULL};
    wait_for_exit (launch (args));
 }
 
@@ -175,7 +175,7 @@ static int popup_cb (void * unused) {
 }
 
 void do_sleep (void) {
-   static const char * const args[] = {"/usr/sbin/j-login-sleep", NULL};
+   static const char * const args[] = {"/usr/bin/j-login-sleep", NULL};
    while (gtk_events_pending ())
       gtk_main_iteration ();
    wait_for_exit (launch (args));
