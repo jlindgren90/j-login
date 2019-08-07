@@ -31,12 +31,9 @@ typedef struct {
 void init_vt (void);
 void close_vt (void);
 int get_vt (void);
-int get_open_vt (void);
-void release_vt (int vt);
 void set_vt (int vt);
 
 console_t * start_x (void);
-void popup_x (const console_t * console);
 void close_x (console_t * console);
 void set_display (int display);
 

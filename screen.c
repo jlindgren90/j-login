@@ -53,7 +53,7 @@ int get_vt (void) {
    return s.v_active;
 }
 
-int get_open_vt (void) {
+static int get_open_vt (void) {
    for (int vt = FIRST_VT; vt < FIRST_VT + MAX_VT; vt ++) {
       if (! vt_used[vt - FIRST_VT]) {
          vt_used[vt - FIRST_VT] = true;
@@ -64,7 +64,7 @@ int get_open_vt (void) {
    return -1;
 }
 
-void release_vt (int vt) {
+static void release_vt (int vt) {
    if (vt >= FIRST_VT && vt < FIRST_VT + MAX_VT)
       vt_used[vt - FIRST_VT] = 0;
 }
@@ -106,10 +106,6 @@ console_t * start_x (void) {
    NEW (console_t, console, vt, display, launch_x (vt, display));
    wait_x (display);
    return console;
-}
-
-void popup_x (const console_t * console) {
-   set_vt (console->vt);
 }
 
 void close_x (console_t * console) {

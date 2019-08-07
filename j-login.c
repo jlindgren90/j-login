@@ -59,7 +59,7 @@ static bool show_ui (void) {
       if (! ui)
          return false;
    }
-   popup_x (first_console);
+   set_vt (first_console->vt);
    return true;
 }
 
@@ -76,7 +76,7 @@ static void start_session (const char * user, const char * pass) {
       console = start_x ();
    else {
       hide_ui ();
-      popup_x (first_console);
+      set_vt (first_console->vt);
       console = first_console;
    }
    static const char * const args[] = {"/usr/bin/j-session", NULL};
@@ -93,7 +93,7 @@ static bool try_activate_session (const char * user) {
          continue;
       if (session->console == first_console)
          hide_ui ();
-      popup_x (session->console);
+      set_vt (session->console->vt);
       active_session = session;
       return true;
    }
