@@ -24,7 +24,7 @@
 
 typedef struct ui_s ui_t;
 
-ui_t * ui_create (const char * status, bool can_quit);
+ui_t * ui_create (GdkDisplay * display, const char * status, bool can_quit);
 void ui_update (ui_t * ui, const char * status, bool can_quit);
 void ui_destroy (ui_t * ui);
 

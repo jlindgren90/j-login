@@ -86,8 +86,10 @@ static bool block_x (Display * handle, Window window) {
    return false;
 }
 
-static void make_window (ui_t * ui) {
+static void make_window (ui_t * ui, GdkDisplay * display) {
    ui->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+   GdkScreen * screen = gdk_display_get_default_screen (display);
+   gtk_window_set_screen ((GtkWindow *) ui->window, screen);
    gtk_window_set_keep_above ((GtkWindow *) ui->window, true);
    ui->fixed = gtk_fixed_new ();
    ui->frame = gtk_vbox_new (false, 6);
@@ -214,9 +216,9 @@ static void set_up_window (ui_t * ui) {
    gtk_widget_grab_default (ui->log_in_button);
 }
 
-ui_t * ui_create (const char * status, bool can_quit) {
+ui_t * ui_create (GdkDisplay * display, const char * status, bool can_quit) {
    ui_t * ui = my_malloc (sizeof (ui_t));
-   make_window (ui);
+   make_window (ui, display);
    make_log_in_page (ui);
    make_fail_page (ui);
    make_tool_box (ui);

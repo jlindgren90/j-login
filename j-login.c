@@ -31,15 +31,17 @@
 #include "utils.h"
 
 typedef struct {
-   char * user;
    xhandle_t * xhandle;
+   GdkDisplay * display;
+   ui_t * ui;
+   char * user;
    pid_t process;
-} session_t;
+} console_t;
 
-static xhandle_t * first_xhandle;
-static const session_t * active_session;
-static GList * sessions;
-static ui_t * ui;
+static GList * consoles;
+static console_t * first_console;
+static console_t * active_console;
+static int user_count;
 static char status[256];
 static bool reboot;
 
@@ -49,90 +51,127 @@ static void run_setup (void) {
 }
 
 static void update_ui (void) {
-   if (ui)
-      ui_update (ui, status, ! sessions);
+   for (GList * node = consoles; node; node = node->next) {
+      console_t * console = node->data;
+      if (console->ui)
+         ui_update (console->ui, status, ! user_count);
+   }
 }
 
-static bool show_ui (void) {
-   if (! ui) {
-      ui = ui_create (status, ! sessions);
-      if (! ui)
+static bool show_ui (console_t * console) {
+   if (! console->ui) {
+      console->ui = ui_create (console->display, status, ! user_count);
+      if (! console->ui)
          return false;
    }
-   set_vt (first_xhandle->vt);
    return true;
 }
 
-static void hide_ui (void) {
-   if (! ui)
+static void hide_ui (console_t * console) {
+   if (! console->ui)
       return;
-   ui_destroy (ui);
-   ui = NULL;
+   ui_destroy (console->ui);
+   console->ui = NULL;
+}
+
+static console_t * open_console (void) {
+   xhandle_t * xhandle = start_x ();
+   SPRINTF (disp_name, ":%d", xhandle->display);
+   GdkDisplay * display;
+   if (! consoles) {
+      /* open the primary display */
+      my_setenv ("DISPLAY", disp_name);
+      gtk_init (NULL, NULL);
+      display = gdk_display_get_default ();
+   } else {
+      /* open a secondary display */
+      display = gdk_display_open (disp_name);
+      if (! display)
+         fail2 ("gdk_display_open", disp_name);
+   }
+   NEW (console_t, console, xhandle, display, NULL, NULL, -1);
+   consoles = g_list_append (consoles, console);
+   return console;
+}
+
+static void activate_console (console_t * console) {
+   set_vt (console->xhandle->vt);
+   active_console = console;
+}
+
+static void close_console (console_t * console) {
+   hide_ui (console);
+   gdk_display_close (console->display);
+   close_x (console->xhandle);
+   consoles = g_list_remove (consoles, console);
+   if (console == active_console)
+      active_console = NULL;
+   free (console);
 }
 
 static void start_session (const char * user, const char * pass) {
-   xhandle_t * xhandle;
-   if (sessions)
-      xhandle = start_x ();
-   else {
-      hide_ui ();
-      set_vt (first_xhandle->vt);
-      xhandle = first_xhandle;
-   }
+   console_t * console;
+   if (! first_console->user) {
+      hide_ui (first_console);
+      console = first_console;
+   } else
+      console = open_console ();
+   activate_console (console);
+   console->user = my_strdup (user);
    static const char * const args[] = {"/usr/bin/j-session", NULL};
-   pid_t process = launch_set_user (user, pass, xhandle->vt, xhandle->display, args);
-   NEW (session_t, session, my_strdup (user), xhandle, process);
-   sessions = g_list_append (sessions, session);
-   active_session = session;
+   console->process = launch_set_user (user, pass, console->xhandle->vt,
+    console->xhandle->display, args);
 }
 
 static bool try_activate_session (const char * user) {
-   for(GList * node = sessions; node; node = node->next) {
-      const session_t * session = node->data;
-      if (strcmp (session->user, user))
+   for (GList * node = consoles; node; node = node->next) {
+      console_t * console = node->data;
+      if (! console->user || strcmp (console->user, user))
          continue;
-      if (session->xhandle == first_xhandle)
-         hide_ui ();
-      set_vt (session->xhandle->vt);
-      active_session = session;
+      hide_ui (console);
+      activate_console (console);
       return true;
    }
    return false;
 }
 
-static void end_session (session_t * session) {
-   if (session == active_session)
-      active_session = NULL;
-   if (session->xhandle != first_xhandle)
-      close_x (session->xhandle);
-   sessions = g_list_remove (sessions, session);
-   free (session->user);
-   free (session);
+static void end_session (console_t * console) {
+   free (console->user);
+   console->user = NULL;
+   console->process = -1;
+   if (console == first_console)
+      show_ui (console);
+   else
+      close_console (console);
 }
 
 static int update_cb (void * unused) {
    (void) unused;
+   user_count = 0;
    snprintf (status, sizeof status, "Logged in:");
-   for (GList * node = sessions; node;) {
+   for (GList * node = consoles; node;) {
       GList * next = node->next;
-      session_t * session = node->data;
-      if (exited (session->process))
-         end_session (session);
-      else {
-         int length = strlen (status);
-         snprintf (status + length, sizeof status - length, " %s", session->user);
+      console_t * console = node->data;
+      if (console->user) {
+         if (exited (console->process))
+            end_session (console);
+         else {
+            user_count ++;
+            int length = strlen (status);
+            snprintf (status + length, sizeof status - length, " %s", console->user);
+         }
       }
       node = next;
    }
-   if (! active_session)
-      show_ui ();
    update_ui ();
+   if (! active_console)
+      activate_console (first_console);
    return G_SOURCE_REMOVE;
 }
 
 static int popup_cb (void * unused) {
    (void) unused;
-   show_ui ();
+   show_ui (active_console);
    return G_SOURCE_REMOVE;
 }
 
@@ -145,7 +184,7 @@ void do_sleep (void) {
 
 static int sleep_cb (void * unused) {
    (void) unused;
-   if (show_ui ())
+   if (show_ui (active_console))
       do_sleep ();
    return G_SOURCE_REMOVE;
 }
@@ -213,15 +252,13 @@ int main (void) {
    set_user ("root");
    init_vt ();
    int old_vt = get_vt ();
-   first_xhandle = start_x ();
-   set_display (first_xhandle->display);
-   gtk_init (NULL, NULL);
+   first_console = open_console ();
    run_setup ();
    start_signal_thread ();
    update_cb (NULL);
+   show_ui (first_console);
    gtk_main ();
-   hide_ui ();
-   close_x (first_xhandle);
+   close_console (first_console);
    set_vt (old_vt);
    close_vt ();
    poweroff ();

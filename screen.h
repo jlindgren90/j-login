@@ -35,6 +35,5 @@ void set_vt (int vt);
 
 xhandle_t * start_x (void);
 void close_x (xhandle_t * xhandle);
-void set_display (int display);
 
 #endif

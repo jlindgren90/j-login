@@ -181,7 +181,8 @@ pid_t launch_set_user (const char * user, const char * password, int vt,
  int display, const char * const * args) {
    pid_t process = fork ();
    if (! process) {
-      set_display (display);
+      SPRINTF (disp_name, ":%d", display);
+      my_setenv ("DISPLAY", disp_name);
       void * pam = open_pam (user, password, vt, display);
       pid_t process2 = fork ();
       if (! process2) {

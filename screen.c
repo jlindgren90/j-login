@@ -101,7 +101,6 @@ static void wait_x (int display) {
 
 xhandle_t * start_x (void) {
    int vt = get_open_vt ();
-   set_vt (vt);
    int display = get_open_display ();
    NEW (xhandle_t, xhandle, vt, display, launch_x (vt, display));
    wait_x (display);
@@ -112,9 +111,4 @@ void close_x (xhandle_t * xhandle) {
    my_kill (xhandle->process);
    release_vt (xhandle->vt);
    free (xhandle);
-}
-
-void set_display (int display) {
-   SPRINTF (name, ":%d", display);
-   my_setenv ("DISPLAY", name);
 }
