@@ -42,11 +42,6 @@ static GList * consoles;
 static int user_count;
 static char status[256];
 
-static void run_setup (void) {
-   static const char * const args[] = {"/usr/bin/j-login-setup", NULL};
-   wait_for_exit (launch (args));
-}
-
 static void update_ui (void) {
    for (GList * node = consoles; node; node = node->next) {
       console_t * console = node->data;
@@ -86,6 +81,8 @@ static console_t * open_console (void) {
       if (! display)
          fail2 ("gdk_display_open", disp_name);
    }
+   static const char * const args[] = {"/usr/bin/j-login-setup", NULL};
+   wait_for_exit (launch_set_display (args, xhandle->display));
    NEW (console_t, console, xhandle, display, NULL, NULL, -1);
    consoles = g_list_append (consoles, console);
    return console;
@@ -245,7 +242,6 @@ int main (void) {
    set_user ("root");
    init_vt ();
    open_console ();
-   run_setup ();
    start_signal_thread ();
    update_cb (NULL);
    show_ui (consoles->data);

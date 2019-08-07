@@ -42,6 +42,7 @@ void my_setenv (const char * name, const char * value);
 bool exist (const char * file);
 void wait_for_exist (const char * folder, const char * file);
 pid_t launch (const char * const * args);
+pid_t launch_set_display (const char * const * args, int display);
 bool exited (pid_t process);
 void wait_for_exit (pid_t process);
 void my_kill (pid_t process);

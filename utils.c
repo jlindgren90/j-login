@@ -123,6 +123,19 @@ pid_t launch (const char * const * args) {
    return process;
 }
 
+pid_t launch_set_display (const char * const * args, int display) {
+   pid_t process = fork ();
+   if (! process) {
+      SPRINTF (disp_name, ":%d", display);
+      my_setenv ("DISPLAY", disp_name);
+      clear_signals ();
+      execvp (args[0], (char * const *) args);
+      fail2 ("execvp", args[0]);
+   } else if (process < 0)
+      fail ("fork");
+   return process;
+}
+
 bool exited (pid_t process) {
    int status;
    pid_t result = waitpid (process, & status, WNOHANG);
