@@ -32,11 +32,11 @@
 
 typedef struct {
    char * user;
-   console_t * console;
+   xhandle_t * xhandle;
    pid_t process;
 } session_t;
 
-static console_t * first_console;
+static xhandle_t * first_xhandle;
 static const session_t * active_session;
 static GList * sessions;
 static ui_t * ui;
@@ -59,7 +59,7 @@ static bool show_ui (void) {
       if (! ui)
          return false;
    }
-   set_vt (first_console->vt);
+   set_vt (first_xhandle->vt);
    return true;
 }
 
@@ -71,17 +71,17 @@ static void hide_ui (void) {
 }
 
 static void start_session (const char * user, const char * pass) {
-   console_t * console;
+   xhandle_t * xhandle;
    if (sessions)
-      console = start_x ();
+      xhandle = start_x ();
    else {
       hide_ui ();
-      set_vt (first_console->vt);
-      console = first_console;
+      set_vt (first_xhandle->vt);
+      xhandle = first_xhandle;
    }
    static const char * const args[] = {"/usr/bin/j-session", NULL};
-   pid_t process = launch_set_user (user, pass, console->vt, console->display, args);
-   NEW (session_t, session, my_strdup (user), console, process);
+   pid_t process = launch_set_user (user, pass, xhandle->vt, xhandle->display, args);
+   NEW (session_t, session, my_strdup (user), xhandle, process);
    sessions = g_list_append (sessions, session);
    active_session = session;
 }
@@ -91,9 +91,9 @@ static bool try_activate_session (const char * user) {
       const session_t * session = node->data;
       if (strcmp (session->user, user))
          continue;
-      if (session->console == first_console)
+      if (session->xhandle == first_xhandle)
          hide_ui ();
-      set_vt (session->console->vt);
+      set_vt (session->xhandle->vt);
       active_session = session;
       return true;
    }
@@ -103,8 +103,8 @@ static bool try_activate_session (const char * user) {
 static void end_session (session_t * session) {
    if (session == active_session)
       active_session = NULL;
-   if (session->console != first_console)
-      close_x (session->console);
+   if (session->xhandle != first_xhandle)
+      close_x (session->xhandle);
    sessions = g_list_remove (sessions, session);
    free (session->user);
    free (session);
@@ -213,15 +213,15 @@ int main (void) {
    set_user ("root");
    init_vt ();
    int old_vt = get_vt ();
-   first_console = start_x ();
-   set_display (first_console->display);
+   first_xhandle = start_x ();
+   set_display (first_xhandle->display);
    gtk_init (NULL, NULL);
    run_setup ();
    start_signal_thread ();
    update_cb (NULL);
    gtk_main ();
    hide_ui ();
-   close_x (first_console);
+   close_x (first_xhandle);
    set_vt (old_vt);
    close_vt ();
    poweroff ();

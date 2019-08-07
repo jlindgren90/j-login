@@ -99,19 +99,19 @@ static void wait_x (int display) {
    wait_for_exist ("/tmp/.X11-unix", path);
 }
 
-console_t * start_x (void) {
+xhandle_t * start_x (void) {
    int vt = get_open_vt ();
    set_vt (vt);
    int display = get_open_display ();
-   NEW (console_t, console, vt, display, launch_x (vt, display));
+   NEW (xhandle_t, xhandle, vt, display, launch_x (vt, display));
    wait_x (display);
-   return console;
+   return xhandle;
 }
 
-void close_x (console_t * console) {
-   my_kill (console->process);
-   release_vt (console->vt);
-   free (console);
+void close_x (xhandle_t * xhandle) {
+   my_kill (xhandle->process);
+   release_vt (xhandle->vt);
+   free (xhandle);
 }
 
 void set_display (int display) {

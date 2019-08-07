@@ -26,15 +26,15 @@
 typedef struct {
    int vt, display;
    pid_t process;
-} console_t;
+} xhandle_t;
 
 void init_vt (void);
 void close_vt (void);
 int get_vt (void);
 void set_vt (int vt);
 
-console_t * start_x (void);
-void close_x (console_t * console);
+xhandle_t * start_x (void);
+void close_x (xhandle_t * xhandle);
 void set_display (int display);
 
 #endif
