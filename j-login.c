@@ -39,7 +39,6 @@ typedef struct {
 } console_t;
 
 static GList * consoles;
-static console_t * active_console;
 static int user_count;
 static char status[256];
 static bool reboot;
@@ -102,9 +101,18 @@ static console_t * get_unused_console (void) {
    return NULL;
 }
 
+static bool lock_consoles (void) {
+   bool locked = true;
+   for (GList * node = consoles; node; node = node->next) {
+      console_t * console = node->data;
+      if (! show_ui (console))
+         locked = false;
+   }
+   return locked;
+}
+
 static void activate_console (console_t * console) {
    set_vt (console->xhandle->vt);
-   active_console = console;
 }
 
 static void close_consoles (void) {
@@ -176,7 +184,7 @@ static int update_cb (void * unused) {
 
 static int popup_cb (void * unused) {
    (void) unused;
-   show_ui (active_console);
+   lock_consoles ();
    return G_SOURCE_REMOVE;
 }
 
@@ -189,7 +197,7 @@ void do_sleep (void) {
 
 static int sleep_cb (void * unused) {
    (void) unused;
-   if (show_ui (active_console))
+   if (lock_consoles ())
       do_sleep ();
    return G_SOURCE_REMOVE;
 }
