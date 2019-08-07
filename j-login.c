@@ -39,7 +39,6 @@ typedef struct {
 } console_t;
 
 static GList * consoles;
-static console_t * first_console;
 static console_t * active_console;
 static int user_count;
 static char status[256];
@@ -94,27 +93,38 @@ static console_t * open_console (void) {
    return console;
 }
 
+static console_t * get_unused_console (void) {
+   for (GList * node = consoles; node; node = node->next) {
+      console_t * console = node->data;
+      if (! console->user)
+         return console;
+   }
+   return NULL;
+}
+
 static void activate_console (console_t * console) {
    set_vt (console->xhandle->vt);
    active_console = console;
 }
 
-static void close_console (console_t * console) {
-   hide_ui (console);
-   gdk_display_close (console->display);
-   close_x (console->xhandle);
-   consoles = g_list_remove (consoles, console);
-   if (console == active_console)
-      active_console = NULL;
-   free (console);
+static void close_consoles (void) {
+   for (GList * node = g_list_last (consoles); node;) {
+      GList * prev = node->prev;
+      console_t * console = node->data;
+      hide_ui (console);
+      gdk_display_close (console->display);
+      close_x (console->xhandle);
+      free (console);
+      consoles = g_list_remove (consoles, console);
+      node = prev;
+   }
 }
 
 static void start_session (const char * user, const char * pass) {
-   console_t * console;
-   if (! first_console->user) {
-      hide_ui (first_console);
-      console = first_console;
-   } else
+   console_t * console = get_unused_console ();
+   if (console)
+      hide_ui (console);
+   else
       console = open_console ();
    activate_console (console);
    console->user = my_strdup (user);
@@ -139,10 +149,7 @@ static void end_session (console_t * console) {
    free (console->user);
    console->user = NULL;
    console->process = -1;
-   if (console == first_console)
-      show_ui (console);
-   else
-      close_console (console);
+   show_ui (console);
 }
 
 static int update_cb (void * unused) {
@@ -164,8 +171,6 @@ static int update_cb (void * unused) {
       node = next;
    }
    update_ui ();
-   if (! active_console)
-      activate_console (first_console);
    return G_SOURCE_REMOVE;
 }
 
@@ -252,13 +257,13 @@ int main (void) {
    set_user ("root");
    init_vt ();
    int old_vt = get_vt ();
-   first_console = open_console ();
+   open_console ();
    run_setup ();
    start_signal_thread ();
    update_cb (NULL);
-   show_ui (first_console);
+   show_ui (consoles->data);
    gtk_main ();
-   close_console (first_console);
+   close_consoles ();
    set_vt (old_vt);
    close_vt ();
    poweroff ();
