@@ -81,7 +81,7 @@ static console_t * open_console (void) {
       if (! display)
          fail2 ("gdk_display_open", disp_name);
    }
-   static const char * const args[] = {"/usr/bin/j-login-setup", NULL};
+   static const char * const args[] = {"j-login-setup", NULL};
    wait_for_exit (launch_set_display (args, xhandle->display));
    NEW (console_t, console, xhandle, display, NULL, NULL, -1);
    consoles = g_list_append (consoles, console);
@@ -119,7 +119,7 @@ static void start_session (const char * user, const char * pass) {
       console = open_console ();
    activate_console (console);
    console->user = my_strdup (user);
-   static const char * const args[] = {"/usr/bin/j-session", NULL};
+   static const char * const args[] = {"j-session", NULL};
    console->process = launch_set_user (user, pass, console->xhandle->vt,
     console->xhandle->display, args);
 }
@@ -171,35 +171,18 @@ static int popup_cb (void * unused) {
    return G_SOURCE_REMOVE;
 }
 
-void do_sleep (void) {
-   static const char * const args[] = {"/usr/bin/j-login-sleep", NULL};
-   while (gtk_events_pending ())
-      gtk_main_iteration ();
-   wait_for_exit (launch (args));
-}
-
-static int sleep_cb (void * unused) {
-   (void) unused;
-   if (lock_consoles ())
-      do_sleep ();
-   return G_SOURCE_REMOVE;
-}
-
 static void * signal_thread (void * unused) {
    (void) unused;
    sigset_t signals;
    sigemptyset (& signals);
    sigaddset (& signals, SIGCHLD);
    sigaddset (& signals, SIGUSR1);
-   sigaddset (& signals, SIGUSR2);
    int signal;
    while (! sigwait (& signals, & signal)) {
       if (signal == SIGCHLD)
          g_timeout_add (0, update_cb, NULL);
       else if (signal == SIGUSR1)
          g_timeout_add (0, popup_cb, NULL);
-      else if (signal == SIGUSR2)
-         g_timeout_add (0, sleep_cb, NULL);
    }
    fail ("sigwait");
    return 0;
@@ -210,7 +193,6 @@ static void start_signal_thread (void) {
    sigemptyset (& signals);
    sigaddset (& signals, SIGCHLD);
    sigaddset (& signals, SIGUSR1);
-   sigaddset (& signals, SIGUSR2);
    if (sigprocmask (SIG_SETMASK, & signals, NULL) < 0)
       fail ("sigprocmask");
    pthread_t thread;
@@ -226,6 +208,11 @@ bool log_in (const char * name, const char * password) {
    start_session (name, password);
    update_cb (NULL);
    return true;
+}
+
+void do_sleep (void) {
+   static const char * const args[] = {"j-login-sleep", NULL};
+   wait_for_exit (launch (args));
 }
 
 void queue_reboot (void) {

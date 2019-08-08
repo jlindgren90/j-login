@@ -1,4 +1,4 @@
 #!/bin/sh
 
 if test -f ~/.Xdefaults ; then xrdb ~/.Xdefaults ; fi
-/usr/bin/xsetroot -cursor_name left_ptr
+xsetroot -cursor_name left_ptr
