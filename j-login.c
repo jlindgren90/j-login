@@ -48,6 +48,8 @@ static void update_ui (void) {
       console_t * console = node->data;
       if (console->ui)
          ui_update (console->ui, status, ! user_count);
+      else if (! console->user)
+         console->ui = ui_create (console->display, status, ! user_count);
    }
 }
 
@@ -100,16 +102,12 @@ static bool lock_consoles (void) {
    return locked;
 }
 
-static void activate_console (console_t * console) {
-   set_vt (console->xhandle->vt);
-}
-
 static void start_session (const char * user, const char * pass) {
    console_t * console = get_unused_console ();
    if (! console)
       console = open_console ();
    hide_ui (console);
-   activate_console (console);
+   set_vt (console->xhandle->vt);
    console->user = my_strdup (user);
    static const char * const args[] = {"j-session", NULL};
    console->process = launch_set_user (user, pass, console->xhandle->vt,
@@ -121,38 +119,35 @@ static bool try_activate_session (const char * user) {
       console_t * console = node->data;
       if (console->user && ! strcmp (console->user, user)) {
          hide_ui (console);
-         activate_console (console);
+         set_vt (console->xhandle->vt);
          return true;
       }
    }
    return false;
 }
 
-static void end_session (console_t * console) {
-   free (console->user);
-   console->user = NULL;
-   console->process = -1;
-   show_ui (console);
-}
-
-static int update_cb (void * unused) {
-   (void) unused;
+static void update_sessions (void) {
    user_count = 0;
    snprintf (status, sizeof status, "Logged in:");
-   for (GList * node = consoles; node;) {
-      GList * next = node->next;
+   for (GList * node = consoles; node; node = node->next) {
       console_t * console = node->data;
       if (console->user) {
-         if (exited (console->process))
-            end_session (console);
-         else {
+         if (exited (console->process)) {
+            free (console->user);
+            console->user = NULL;
+            console->process = -1;
+         } else {
             user_count ++;
             int length = strlen (status);
             snprintf (status + length, sizeof status - length, " %s", console->user);
          }
       }
-      node = next;
    }
+}
+
+static int update_cb (void * unused) {
+   (void) unused;
+   update_sessions ();
    update_ui ();
    return G_SOURCE_REMOVE;
 }
@@ -239,7 +234,7 @@ int main (void) {
    start_signal_thread ();
    g_timeout_add_seconds (10, ssaver_cb, NULL);
    update_cb (NULL);
-   show_ui (consoles->data);
+   show_ui (console);
    gtk_main ();
    return 0;
 }
