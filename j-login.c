@@ -61,27 +61,18 @@ static bool show_ui (console_t * console) {
 }
 
 static void hide_ui (console_t * console) {
-   if (! console->ui)
-      return;
-   ui_destroy (console->ui);
-   console->ui = NULL;
+   if (console->ui) {
+      ui_destroy (console->ui);
+      console->ui = NULL;
+   }
 }
 
 static console_t * open_console (void) {
    xhandle_t * xhandle = start_x ();
    SPRINTF (disp_name, ":%d", xhandle->display);
-   GdkDisplay * display;
-   if (! consoles) {
-      /* open the primary display */
-      my_setenv ("DISPLAY", disp_name);
-      gtk_init (NULL, NULL);
-      display = gdk_display_get_default ();
-   } else {
-      /* open a secondary display */
-      display = gdk_display_open (disp_name);
-      if (! display)
-         fail2 ("gdk_display_open", disp_name);
-   }
+   GdkDisplay * display = gdk_display_open (disp_name);
+   if (! display)
+      fail2 ("gdk_display_open", disp_name);
    ssaver_init (gdk_x11_display_get_xdisplay (display));
    static const char * const args[] = {"j-login-setup", NULL};
    wait_for_exit (launch_set_display (args, xhandle->display));
@@ -115,10 +106,9 @@ static void activate_console (console_t * console) {
 
 static void start_session (const char * user, const char * pass) {
    console_t * console = get_unused_console ();
-   if (console)
-      hide_ui (console);
-   else
+   if (! console)
       console = open_console ();
+   hide_ui (console);
    activate_console (console);
    console->user = my_strdup (user);
    static const char * const args[] = {"j-session", NULL};
@@ -129,11 +119,11 @@ static void start_session (const char * user, const char * pass) {
 static bool try_activate_session (const char * user) {
    for (GList * node = consoles; node; node = node->next) {
       console_t * console = node->data;
-      if (! console->user || strcmp (console->user, user))
-         continue;
-      hide_ui (console);
-      activate_console (console);
-      return true;
+      if (console->user && ! strcmp (console->user, user)) {
+         hide_ui (console);
+         activate_console (console);
+         return true;
+      }
    }
    return false;
 }
@@ -241,7 +231,11 @@ void queue_shutdown (void) {
 int main (void) {
    set_user ("root");
    init_vt ();
-   open_console ();
+   if (! gtk_parse_args (NULL, NULL))
+      fail ("gtk_parse_args");
+   console_t * console = open_console ();
+   GdkDisplayManager * dm = gdk_display_manager_get ();
+   gdk_display_manager_set_default_display (dm, console->display);
    start_signal_thread ();
    g_timeout_add_seconds (10, ssaver_cb, NULL);
    update_cb (NULL);
