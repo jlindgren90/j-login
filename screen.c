@@ -30,28 +30,14 @@
 #include "screen.h"
 #include "utils.h"
 
-#define FIRST_VT 7
-#define MAX_VT 16
-
 static int vt_handle;
-static bool vt_used[MAX_VT];
+static int next_vt = 7;
 
 void init_vt (void) {
    if ((vt_handle = open ("/dev/console", O_RDONLY)) < 0)
       fail2 ("open", "/dev/console");
    if (fcntl (vt_handle, F_SETFD, FD_CLOEXEC) < 0)
       fail2 ("FD_CLOEXEC", "/dev/console");
-}
-
-static int get_open_vt (void) {
-   for (int vt = FIRST_VT; vt < FIRST_VT + MAX_VT; vt ++) {
-      if (! vt_used[vt - FIRST_VT]) {
-         vt_used[vt - FIRST_VT] = true;
-         return vt;
-      }
-   }
-   error ("too many open VTs");
-   return -1;
 }
 
 void set_vt (int vt) {
@@ -72,7 +58,7 @@ static int get_open_display (void) {
 }
 
 void start_x (int * vt, int * display) {
-   * vt = get_open_vt ();
+   * vt = next_vt ++;
    * display = get_open_display ();
    SPRINTF (display_opt, ":%d", * display);
    SPRINTF (vt_opt, "vt%d", * vt);
