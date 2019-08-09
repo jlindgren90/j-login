@@ -32,7 +32,7 @@
 #include "utils.h"
 
 typedef struct {
-   xhandle_t * xhandle;
+   int vt, disp_num;
    GdkDisplay * display;
    ui_t * ui;
    char * user;
@@ -70,15 +70,16 @@ static void hide_ui (console_t * console) {
 }
 
 static console_t * open_console (void) {
-   xhandle_t * xhandle = start_x ();
-   SPRINTF (disp_name, ":%d", xhandle->display);
+   int vt, disp_num;
+   start_x (& vt, & disp_num);
+   SPRINTF (disp_name, ":%d", disp_num);
    GdkDisplay * display = gdk_display_open (disp_name);
    if (! display)
       fail2 ("gdk_display_open", disp_name);
    ssaver_init (gdk_x11_display_get_xdisplay (display));
    static const char * const args[] = {"j-login-setup", NULL};
-   wait_for_exit (launch_set_display (args, xhandle->display));
-   NEW (console_t, console, xhandle, display, NULL, NULL, -1);
+   wait_for_exit (launch_set_display (args, disp_num));
+   NEW (console_t, console, vt, disp_num, display, NULL, NULL, -1);
    consoles = g_list_append (consoles, console);
    return console;
 }
@@ -107,11 +108,10 @@ static void start_session (const char * user, const char * pass) {
    if (! console)
       console = open_console ();
    hide_ui (console);
-   set_vt (console->xhandle->vt);
+   set_vt (console->vt);
    console->user = my_strdup (user);
    static const char * const args[] = {"j-session", NULL};
-   console->process = launch_set_user (user, pass, console->xhandle->vt,
-    console->xhandle->display, args);
+   console->process = launch_set_user (user, pass, console->vt, console->disp_num, args);
 }
 
 static bool try_activate_session (const char * user) {
@@ -119,7 +119,7 @@ static bool try_activate_session (const char * user) {
       console_t * console = node->data;
       if (console->user && ! strcmp (console->user, user)) {
          hide_ui (console);
-         set_vt (console->xhandle->vt);
+         set_vt (console->vt);
          return true;
       }
    }

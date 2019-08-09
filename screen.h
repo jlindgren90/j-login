@@ -20,20 +20,12 @@
 #ifndef JLOGIN_SCREEN_H
 #define JLOGIN_SCREEN_H
 
-#include <stdbool.h>
-#include <sys/types.h>
-
 #include <X11/Xlib.h>
-
-typedef struct {
-   int vt, display;
-   pid_t process;
-} xhandle_t;
 
 void init_vt (void);
 void set_vt (int vt);
 
-xhandle_t * start_x (void);
+void start_x (int * display, int * vt);
 
 void ssaver_init (Display * display);
 int ssaver_active_ms (Display * display);

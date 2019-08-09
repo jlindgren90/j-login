@@ -71,25 +71,15 @@ static int get_open_display (void) {
    return -1;
 }
 
-static pid_t launch_x (int vt, int display) {
-   SPRINTF (display_opt, ":%d", display);
-   SPRINTF (vt_opt, "vt%d", vt);
-   const char * const args[] = {"X", display_opt, vt_opt, 0};
-   return launch (args);
-}
-
-static void wait_x (int display) {
-   SPRINTF (path, "/tmp/.X11-unix/X%d", display);
+void start_x (int * vt, int * display) {
+   * vt = get_open_vt ();
+   * display = get_open_display ();
+   SPRINTF (display_opt, ":%d", * display);
+   SPRINTF (vt_opt, "vt%d", * vt);
+   launch ((const char * []){"X", display_opt, vt_opt, NULL});
+   SPRINTF (path, "/tmp/.X11-unix/X%d", * display);
    wait_for_exist ("/tmp", "/tmp/.X11-unix");
    wait_for_exist ("/tmp/.X11-unix", path);
-}
-
-xhandle_t * start_x (void) {
-   int vt = get_open_vt ();
-   int display = get_open_display ();
-   NEW (xhandle_t, xhandle, vt, display, launch_x (vt, display));
-   wait_x (display);
-   return xhandle;
 }
 
 void ssaver_init (Display * display) {
