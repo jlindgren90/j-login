@@ -25,6 +25,8 @@
 #include <time.h>
 #include <unistd.h>
 
+#include <X11/extensions/scrnsaver.h>
+
 #include "screen.h"
 #include "utils.h"
 
@@ -88,4 +90,17 @@ xhandle_t * start_x (void) {
    NEW (xhandle_t, xhandle, vt, display, launch_x (vt, display));
    wait_x (display);
    return xhandle;
+}
+
+void ssaver_init (Display * display) {
+   int event_base, error_base;
+   if (! XScreenSaverQueryExtension (display, & event_base, & error_base))
+      fail ("XScreenSaverQueryExtension");
+}
+
+int ssaver_active_ms (Display * display) {
+   XScreenSaverInfo info;
+   if (! XScreenSaverQueryInfo (display, DefaultRootWindow (display), & info))
+      fail ("XScreenSaverQueryInfo");
+   return info.state == ScreenSaverOff ? -info.til_or_since : info.til_or_since;
 }

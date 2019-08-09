@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <gdk/gdkx.h>
 #include <gtk/gtk.h>
 
 #include "actions.h"
@@ -81,6 +82,7 @@ static console_t * open_console (void) {
       if (! display)
          fail2 ("gdk_display_open", disp_name);
    }
+   ssaver_init (gdk_x11_display_get_xdisplay (display));
    static const char * const args[] = {"j-login-setup", NULL};
    wait_for_exit (launch_set_display (args, xhandle->display));
    NEW (console_t, console, xhandle, display, NULL, NULL, -1);
@@ -171,6 +173,17 @@ static int popup_cb (void * unused) {
    return G_SOURCE_REMOVE;
 }
 
+static int ssaver_cb (void * unused) {
+   (void) unused;
+   for (GList * node = consoles; node; node = node->next) {
+      console_t * console = node->data;
+      Display * xdisplay = gdk_x11_display_get_xdisplay (console->display);
+      if (ssaver_active_ms (xdisplay) > 60000)
+         show_ui (console);
+   }
+   return G_SOURCE_CONTINUE;
+}
+
 static void * signal_thread (void * unused) {
    (void) unused;
    sigset_t signals;
@@ -230,6 +243,7 @@ int main (void) {
    init_vt ();
    open_console ();
    start_signal_thread ();
+   g_timeout_add_seconds (10, ssaver_cb, NULL);
    update_cb (NULL);
    show_ui (consoles->data);
    gtk_main ();

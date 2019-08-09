@@ -1,6 +1,6 @@
 BASE_CFLAGS = -Wall -Wextra -O2 -std=c99 -D_POSIX_C_SOURCE=200112L
 CFLAGS = ${BASE_CFLAGS} $(shell pkg-config --cflags gtk+-2.0 x11)
-LIBS = -lcrypt -lpam $(shell pkg-config --libs gtk+-2.0 x11)
+LIBS = -lcrypt -lpam $(shell pkg-config --libs gtk+-2.0 x11) -lXss
 
 SRCS = j-login.c pam.c screen.c ui.c utils.c
 HDRS = actions.h pam.h screen.h ui.h utils.h

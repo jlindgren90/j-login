@@ -23,6 +23,8 @@
 #include <stdbool.h>
 #include <sys/types.h>
 
+#include <X11/Xlib.h>
+
 typedef struct {
    int vt, display;
    pid_t process;
@@ -32,5 +34,8 @@ void init_vt (void);
 void set_vt (int vt);
 
 xhandle_t * start_x (void);
+
+void ssaver_init (Display * display);
+int ssaver_active_ms (Display * display);
 
 #endif
