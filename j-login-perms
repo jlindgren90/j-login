@@ -1,0 +1,2 @@
+# allow any user to lock the screen
+ALL ALL=(ALL) NOPASSWD: /usr/bin/pkill -USR1 j-login
