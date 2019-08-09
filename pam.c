@@ -68,8 +68,7 @@ void * open_pam (const char * user, const char * pass, int vt, int display) {
    return handle;
 }
 
-void close_pam (void * handle)
-{
+void close_pam (void * handle) {
    pam_close_session (handle, 0);
    pam_end (handle, PAM_SUCCESS);
 }

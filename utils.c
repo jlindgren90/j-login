@@ -50,8 +50,7 @@ void fail (const char * func) {
 }
 
 void fail2 (const char * func, const char * param) {
-   fprintf (stderr, "%s: %s failed for %s: %s.\n", NAME, func, param, strerror
-    (errno));
+   fprintf (stderr, "%s: %s failed for %s: %s.\n", NAME, func, param, strerror (errno));
    exit (1);
 }
 
@@ -83,8 +82,7 @@ bool exist (const char * name) {
    return false;
 }
 
-void wait_for_exist (const char * folder, const char * file)
-{
+void wait_for_exist (const char * folder, const char * file) {
    int handle = inotify_init ();
    if (handle < 0)
       fail ("inotify_init");
@@ -99,8 +97,7 @@ void wait_for_exist (const char * folder, const char * file)
       if (poll (& polldata, 1, 1000) < 0)
          fail2 ("poll", "inotify");
       struct inotify_event event;
-      while (read (handle, & event, sizeof event) == sizeof event)
-         ;
+      while (read (handle, & event, sizeof event) == sizeof event) {}
    }
    close (handle);
 }
@@ -146,8 +143,7 @@ bool exited (pid_t process) {
 void wait_for_exit (pid_t process) {
    int status;
    while (waitpid (process, & status, 0) != process || WIFSTOPPED (status) ||
-    WIFCONTINUED (status))
-      ;
+    WIFCONTINUED (status)) {}
 }
 
 void my_kill (pid_t process) {
