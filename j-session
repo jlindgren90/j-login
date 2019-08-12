@@ -3,6 +3,8 @@
 export LANG=en_US.UTF-8
 export SHELL=/bin/bash
 
+test -f $HOME/.profile && . $HOME/.profile
+
 if test -f $HOME/.xsession ; then
     exec $HOME/.xsession
 else
