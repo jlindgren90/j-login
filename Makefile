@@ -1,4 +1,4 @@
-BASE_CFLAGS = -Wall -Wextra -O2 -std=c99 -D_POSIX_C_SOURCE=200112L
+BASE_CFLAGS = -Wall -Wextra -O2 -std=c99 -D_GNU_SOURCE
 CFLAGS = ${BASE_CFLAGS} $(shell pkg-config --cflags gtk+-2.0 x11)
 LIBS = -lcrypt -lpam $(shell pkg-config --libs gtk+-2.0 x11) -lXss
 
