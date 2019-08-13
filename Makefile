@@ -22,13 +22,10 @@ uninstall :
 	rm -f ${DESTDIR}/usr/bin/j-login-setup
 	rm -f ${DESTDIR}/usr/bin/j-login-sleep
 	rm -f ${DESTDIR}/usr/bin/j-session
-	rm -f ${DESTDIR}/usr/lib/systemd/system/j-login.service
-	rm -f ${DESTDIR}/usr/lib/systemd/system/j-login-sleep.service
 	rm -f ${DESTDIR}/usr/share/pixmaps/j-login.png
 
 install :
 	mkdir -p ${DESTDIR}/usr/bin
-	mkdir -p ${DESTDIR}/usr/lib/systemd/system
 	mkdir -p ${DESTDIR}/usr/share/pixmaps
 	cp j-login ${DESTDIR}/usr/bin/
 	cp j-login-lock ${DESTDIR}/usr/bin/
@@ -36,6 +33,4 @@ install :
 	cp j-login-setup ${DESTDIR}/usr/bin/
 	cp j-login-sleep ${DESTDIR}/usr/bin/
 	cp j-session ${DESTDIR}/usr/bin/
-	cp j-login.service ${DESTDIR}/usr/lib/systemd/system/
-	cp j-login-sleep.service ${DESTDIR}/usr/lib/systemd/system/
 	cp j-login.png ${DESTDIR}/usr/share/pixmaps/
