@@ -182,8 +182,7 @@ void set_user (const char * user) {
    my_setenv ("USER", user);
    my_setenv ("LOGNAME", user);
    my_setenv ("HOME", p->pw_dir);
-   SPRINTF (path, "/bin:/sbin:/usr/bin:/usr/sbin:/usr/games:%s/bin", p->pw_dir);
-   my_setenv ("PATH", path);
+   my_setenv ("SHELL", p->pw_shell);
 }
 
 pid_t launch_set_user (const char * user, const char * password, int vt,
