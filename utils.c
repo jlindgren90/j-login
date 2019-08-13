@@ -35,6 +35,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "consolekit.h"
 #include "pam.h"
 #include "screen.h"
 #include "utils.h"
@@ -152,6 +153,13 @@ void my_kill (pid_t process) {
    wait_for_exit (process);
 }
 
+static uid_t get_uid (const char * user) {
+   const struct passwd * p = getpwnam (user);
+   if (! p)
+      fail2 ("getpwnam", user);
+   return p->pw_uid;
+}
+
 bool check_password (const char * name, const char * password) {
    const struct passwd * p = getpwnam (name);
    if (! p)
@@ -192,6 +200,7 @@ pid_t launch_set_user (const char * user, const char * password, int vt,
       SPRINTF (disp_name, ":%d", display);
       my_setenv ("DISPLAY", disp_name);
       void * pam = open_pam (user, password, vt, display);
+      void * ck = open_consolekit (get_uid (user), vt, display);
       pid_t process2 = fork ();
       if (! process2) {
          clear_signals ();
@@ -201,6 +210,7 @@ pid_t launch_set_user (const char * user, const char * password, int vt,
       } else if (process2 < 1)
          fail ("fork");
       wait_for_exit (process2);
+      close_consolekit (ck);
       close_pam (pam);
       _exit (0);
    } else if (process < 1)
