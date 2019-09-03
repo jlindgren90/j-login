@@ -245,6 +245,8 @@ void ui_update (ui_t * ui, const char * status, bool can_quit) {
 void ui_destroy (ui_t * ui) {
    GdkWindow * gdkw = gtk_widget_get_window (ui->window);
    unblock_x (GDK_WINDOW_XDISPLAY (gdkw));
+   GdkScreen * screen = gtk_widget_get_screen (ui->window);
+   g_signal_handlers_disconnect_by_data (screen, ui);
    gtk_widget_destroy (ui->window);
    free (ui);
 }
