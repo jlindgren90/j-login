@@ -5,7 +5,7 @@ Before=sleep.target
 [Service]
 Type=oneshot
 ExecStart=/usr/bin/pkill -USR1 j-login
-ExecStart=/usr/bin/sleep 0.2
+ExecStart=/bin/sleep 0.2
 
 [Install]
 WantedBy=sleep.target
