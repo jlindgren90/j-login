@@ -30,12 +30,12 @@ install :
 	mkdir -p ${DESTDIR}/usr/bin
 	mkdir -p ${DESTDIR}/usr/lib/systemd/system
 	mkdir -p ${DESTDIR}/usr/share/pixmaps
-	cp j-login ${DESTDIR}/usr/bin/
-	cp j-login-lock ${DESTDIR}/usr/bin/
+	install j-login ${DESTDIR}/usr/bin/
+	install j-login-lock ${DESTDIR}/usr/bin/
 	chmod +s ${DESTDIR}/usr/bin/j-login-lock
-	cp j-login-setup ${DESTDIR}/usr/bin/
-	cp j-login-sleep ${DESTDIR}/usr/bin/
-	cp j-session ${DESTDIR}/usr/bin/
-	cp j-login.service ${DESTDIR}/usr/lib/systemd/system/
-	cp j-login-sleep.service ${DESTDIR}/usr/lib/systemd/system/
-	cp j-login.png ${DESTDIR}/usr/share/pixmaps/
+	install j-login-setup ${DESTDIR}/usr/bin/
+	install j-login-sleep ${DESTDIR}/usr/bin/
+	install j-session ${DESTDIR}/usr/bin/
+	install -m644 j-login.service ${DESTDIR}/usr/lib/systemd/system/
+	install -m644 j-login-sleep.service ${DESTDIR}/usr/lib/systemd/system/
+	install -m644 j-login.png ${DESTDIR}/usr/share/pixmaps/
