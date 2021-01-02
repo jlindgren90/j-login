@@ -88,10 +88,16 @@ static bool block_x (Display * handle, Window window) {
    return false;
 }
 
+static void set_override_redirect (GtkWidget * window) {
+   GdkWindow * gdkw = gtk_widget_get_window (window);
+   gdk_window_set_override_redirect (gdkw, true);
+}
+
 static GtkWidget * make_window_for_screen (GdkScreen * screen) {
    GtkWidget * window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
    gtk_window_set_screen ((GtkWindow *) window, screen);
    gtk_window_set_keep_above ((GtkWindow *) window, true);
+   g_signal_connect (window, "realize", (GCallback) set_override_redirect, NULL);
    return window;
 }
 
@@ -206,11 +212,6 @@ static void reset (ui_t * ui) {
    gtk_widget_grab_default (ui->log_in_button);
 }
 
-static void realize_cb (ui_t * ui) {
-   GdkWindow * gdkw = gtk_widget_get_window (ui->window);
-   gdk_window_set_override_redirect (gdkw, true);
-}
-
 static void screen_changed (ui_t * ui) {
    if (gtk_widget_get_visible (ui->window))
       do_layout (ui);
@@ -231,7 +232,6 @@ static void attempt_login (ui_t * ui) {
 }
 
 static void set_up_window (ui_t * ui) {
-   g_signal_connect_swapped (ui->window, "realize", (GCallback) realize_cb, ui);
    GdkScreen * screen = gtk_widget_get_screen (ui->window);
    g_signal_connect_swapped (screen, "monitors-changed", (GCallback) screen_changed, ui);
    g_signal_connect_swapped (screen, "size-changed", (GCallback) screen_changed, ui);
