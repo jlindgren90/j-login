@@ -1,5 +1,5 @@
 BASE_CFLAGS = -Wall -Wextra -O2 -std=c99 -D_GNU_SOURCE
-CFLAGS = ${BASE_CFLAGS} $(shell pkg-config --cflags gtk+-2.0 x11)
+CFLAGS = ${BASE_CFLAGS} $(shell pkg-config --cflags gtk+-2.0 x11) -DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_32
 LIBS = -lcrypt -lpam $(shell pkg-config --libs gtk+-2.0 x11) -lXss
 
 SRCS = j-login.c pam.c screen.c ui.c utils.c
