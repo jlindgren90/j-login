@@ -31,6 +31,7 @@ struct ui_s {
    GtkWidget * window, * fixed, * frame, * pages, * log_in_page, * fail_page;
    GtkWidget * name_entry, * password_entry, * log_in_button, * back_button;
    GtkWidget * status_bar, * sleep_button, * shut_down_button, * reboot_button;
+   GList * extra_windows;
 };
 
 /* override GTK symbol so that GTK never releases our grab */
@@ -71,8 +72,7 @@ static void unblock_x (Display * handle) {
 
 static bool block_x (Display * handle, Window window) {
    bool mouse = false, keyboard = false;
-   for (int count = 0; count < 50; count ++)
-   {
+   for (int count = 0; count < 50; count ++) {
       if (! keyboard)
          keyboard = (XGrabKeyboard (handle, window, true, GrabModeAsync,
           GrabModeAsync, CurrentTime) == GrabSuccess);
@@ -88,11 +88,22 @@ static bool block_x (Display * handle, Window window) {
    return false;
 }
 
+static GtkWidget * make_window_for_screen (GdkScreen * screen) {
+   GtkWidget * window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+   gtk_window_set_screen ((GtkWindow *) window, screen);
+   gtk_window_set_keep_above ((GtkWindow *) window, true);
+   return window;
+}
+
+static void resize_window_to_screen (GtkWidget * window, GdkScreen * screen)
+{
+   int w = gdk_screen_get_width (screen), h = gdk_screen_get_height (screen);
+   gtk_window_resize ((GtkWindow *) window, w, h);
+}
+
 static void make_window (ui_t * ui, GdkDisplay * display) {
-   ui->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
    GdkScreen * screen = gdk_display_get_default_screen (display);
-   gtk_window_set_screen ((GtkWindow *) ui->window, screen);
-   gtk_window_set_keep_above ((GtkWindow *) ui->window, true);
+   ui->window = make_window_for_screen (screen);
    ui->fixed = gtk_fixed_new ();
    ui->frame = gtk_vbox_new (false, 6);
    GtkWidget * icon = gtk_image_new_from_file ("/usr/share/pixmaps/j-login.png");
@@ -101,6 +112,22 @@ static void make_window (ui_t * ui, GdkDisplay * display) {
    gtk_box_pack_start ((GtkBox *) ui->frame, ui->pages, true, false, 0);
    gtk_fixed_put ((GtkFixed *) ui->fixed, ui->frame, 0, 0);
    gtk_container_add ((GtkContainer *) ui->window, ui->fixed);
+}
+
+static void make_extra_windows (ui_t * ui, GdkDisplay * display) {
+   ui->extra_windows = NULL;
+   GdkScreen * def_screen = gdk_display_get_default_screen (display);
+   int n_screens = gdk_display_get_n_screens (display);
+   for (int s = 0; s < n_screens; s ++) {
+      GdkScreen * screen = gdk_display_get_screen (display, s);
+      if (screen == def_screen)
+         continue;
+      GtkWidget * window = make_window_for_screen (screen);
+      ui->extra_windows = g_list_append (ui->extra_windows, window);
+      resize_window_to_screen (window, screen);
+      g_signal_connect_object (screen, "size-changed",
+       (GCallback) resize_window_to_screen, window, G_CONNECT_SWAPPED);
+   }
 }
 
 static void make_log_in_page (ui_t * ui) {
@@ -162,9 +189,8 @@ static void make_tool_box (ui_t * ui) {
 
 static void do_layout (ui_t * ui) {
    GdkScreen * screen = gtk_window_get_screen ((GtkWindow *) ui->window);
+   resize_window_to_screen (ui->window, screen);
    int monitor = gdk_screen_get_primary_monitor (screen);
-   int w = gdk_screen_get_width (screen), h = gdk_screen_get_height (screen);
-   gtk_window_resize ((GtkWindow *) ui->window, w, h);
    GdkRectangle rect;
    gdk_screen_get_monitor_geometry (screen, monitor, & rect);
    gtk_fixed_move ((GtkFixed *) ui->fixed, ui->frame, rect.x + 6, rect.y + 6);
@@ -218,17 +244,24 @@ static void set_up_window (ui_t * ui) {
    gtk_widget_grab_default (ui->log_in_button);
 }
 
+static void show_windows (ui_t * ui) {
+   for (GList * node = ui->extra_windows; node; node = node->next)
+      gtk_widget_show_all ((GtkWidget *) node->data);
+   gtk_widget_show_all (ui->window);
+   gtk_window_present ((GtkWindow *) ui->window);
+}
+
 ui_t * ui_create (GdkDisplay * display, const char * status, bool can_quit) {
    ui_t * ui = my_malloc (sizeof (ui_t));
    make_window (ui, display);
+   make_extra_windows (ui, display);
    make_log_in_page (ui);
    make_fail_page (ui);
    make_tool_box (ui);
    set_up_window (ui);
    do_layout (ui);
    ui_update (ui, status, can_quit);
-   gtk_widget_show_all (ui->window);
-   gtk_window_present ((GtkWindow *) ui->window);
+   show_windows (ui);
    GdkWindow * gdkw = gtk_widget_get_window (ui->window);
    if (block_x (GDK_WINDOW_XDISPLAY (gdkw), GDK_WINDOW_XID (gdkw)))
       return ui;
@@ -248,5 +281,6 @@ void ui_destroy (ui_t * ui) {
    GdkScreen * screen = gtk_widget_get_screen (ui->window);
    g_signal_handlers_disconnect_by_data (screen, ui);
    gtk_widget_destroy (ui->window);
+   g_list_free_full (ui->extra_windows, (GDestroyNotify) gtk_widget_destroy);
    free (ui);
 }
