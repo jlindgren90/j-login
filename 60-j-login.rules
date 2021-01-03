@@ -1,0 +1,2 @@
+# register /dev/dri/card0 etc. to systemd so we can use Requires/After
+ACTION=="add", SUBSYSTEM=="drm", KERNEL=="card[0-9]", TAG+="systemd"
