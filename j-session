@@ -3,8 +3,10 @@
 test -f /etc/profile && . /etc/profile
 test -f $HOME/.profile && . $HOME/.profile
 
+systemctl --user import-environment
+
 if test -f $HOME/.xsession ; then
-    exec $HOME/.xsession
+    exec systemd-run --user --wait $HOME/.xsession
 else
-    exec xterm
+    exec systemd-run --user --wait xterm
 fi
