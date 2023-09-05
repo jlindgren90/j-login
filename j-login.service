@@ -2,10 +2,6 @@
 Description=J-Login
 Requires=dbus.socket
 
-# wait for video card init
-Requires=dev-dri-card0.device
-After=dev-dri-card0.device
-
 [Service]
 ExecStart=/usr/bin/j-login
 

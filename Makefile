@@ -24,14 +24,12 @@ uninstall :
 	rm -f ${DESTDIR}/usr/bin/j-session
 	rm -f ${DESTDIR}/usr/lib/systemd/system/j-login.service
 	rm -f ${DESTDIR}/usr/lib/systemd/system/j-login-sleep.service
-	rm -f ${DESTDIR}/usr/lib/udev/rules.d/60-j-login.rules
 	rm -f ${DESTDIR}/usr/share/pixmaps/j-login.png
 
 install :
-	install -d ${DESTDIR}/usr/bin
-	install -d ${DESTDIR}/usr/lib/systemd/system
-	install -d ${DESTDIR}/usr/lib/udev/rules.d
-	install -d ${DESTDIR}/usr/share/pixmaps
+	mkdir -p ${DESTDIR}/usr/bin
+	mkdir -p ${DESTDIR}/usr/lib/systemd/system
+	mkdir -p ${DESTDIR}/usr/share/pixmaps
 	install j-login ${DESTDIR}/usr/bin/
 	install j-login-lock ${DESTDIR}/usr/bin/
 	chmod +s ${DESTDIR}/usr/bin/j-login-lock
@@ -40,5 +38,4 @@ install :
 	install j-session ${DESTDIR}/usr/bin/
 	install -m644 j-login.service ${DESTDIR}/usr/lib/systemd/system/
 	install -m644 j-login-sleep.service ${DESTDIR}/usr/lib/systemd/system/
-	install -m644 60-j-login.rules ${DESTDIR}/usr/lib/udev/rules.d/
 	install -m644 j-login.png ${DESTDIR}/usr/share/pixmaps/
